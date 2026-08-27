@@ -1,0 +1,3007 @@
+:root {
+  --green-dark: #234d20;
+  --green: #2f6b3a;
+  --green-light: #4c9a5b;
+  --gold: #d9b64c;
+  --bg: #f4f6f2;
+  --text-dark: #1f2a1c;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-content {
+  flex: 1;
+}
+
+.app-footer {
+  padding: 16px;
+  text-align: center;
+  background: #fff;
+  color: var(--text-dark);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Navbar */
+.navbar-agri {
+  background: #fff;
+  border-radius: 40px;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  margin: 16px;
+  position: relative;
+  z-index: 100;
+}
+
+.navbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.navbar-agri .logo {
+  font-weight: 700;
+  font-size: 1.3rem;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.navbar-agri .logo .agri {
+  color: var(--text-dark);
+}
+
+.navbar-agri .logo .sphere {
+  color: var(--green);
+}
+
+/* Hamburger button — only shown once the nav links no longer fit in one row */
+.navbar-toggle {
+  display: none;
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--green-dark);
+  font-size: 1.2rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.notif-btn {
+  position: relative;
+}
+
+.notif-badge {
+  display: inline-block;
+  margin-left: 4px;
+  background: #c0392b;
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.account-btn {
+  white-space: nowrap;
+}
+
+/* Below this width the nav links no longer comfortably fit in one row, so
+   they collapse behind the hamburger toggle instead of wrapping messily.
+   (The logged-in farmer/expert nav has up to 9 items and needs ~1350-1400px
+   to lay out in a single row without an uneven wrap, so the threshold sits
+   above that rather than at a generic tablet breakpoint.) */
+@media (max-width: 1450px) {
+  .navbar-agri {
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 24px;
+  }
+
+  .navbar-toggle {
+    display: flex;
+  }
+
+  /* Wraps like the desktop pill row (not a full-width vertical stack), so
+     the expanded state stays a compact block inside the navbar island
+     instead of ballooning into a full-screen list. */
+  .nav-links {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    gap: 8px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    margin-top: 0;
+    transition: max-height 0.4s ease, opacity 0.25s ease, margin-top 0.4s ease;
+  }
+
+  .nav-links-open {
+    max-height: 600px;
+    opacity: 1;
+    pointer-events: auto;
+    margin-top: 12px;
+    /* Once open, stop clipping — a nested dropdown's panel extends below
+       this box, and overflow:hidden (needed while collapsed, so the height
+       transition doesn't spill content) would otherwise cut it off. */
+    overflow: visible;
+  }
+
+  /* Each item unveils on its own, staggered right-to-left, rolling out
+     from the toggle button's corner (up + across) rather than just fading
+     in place. */
+  .nav-links > * {
+    opacity: 0;
+    transform: translate(24px, -10px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  .nav-links-open > * {
+    opacity: 1;
+    /* `none`, not translate(0,0) — a translate() of any kind (even a
+       no-op) still creates a new stacking context, which would trap a
+       dropdown panel's z-index inside its own item instead of letting it
+       compete globally, so later nav items paint over it. */
+    transform: none;
+  }
+
+  /* Stagger by distance from the last item (the rightmost one in the
+     unwrapped desktop row), so the reveal sweeps right-to-left regardless
+     of how many items a given role has — same delays drive the close too,
+     so collapsing sweeps the same direction. */
+  .nav-links > *:nth-last-child(1) { transition-delay: 0s; }
+  .nav-links > *:nth-last-child(2) { transition-delay: 0.035s; }
+  .nav-links > *:nth-last-child(3) { transition-delay: 0.07s; }
+  .nav-links > *:nth-last-child(4) { transition-delay: 0.105s; }
+  .nav-links > *:nth-last-child(5) { transition-delay: 0.14s; }
+  .nav-links > *:nth-last-child(6) { transition-delay: 0.175s; }
+  .nav-links > *:nth-last-child(7) { transition-delay: 0.21s; }
+  .nav-links > *:nth-last-child(8) { transition-delay: 0.245s; }
+  .nav-links > *:nth-last-child(9) { transition-delay: 0.28s; }
+
+  /* Nested dropdowns keep floating over the page (same as desktop) instead
+     of flowing inline — anchored to the middle of their own trigger button
+     so they stay clear of the viewport edge regardless of where that
+     button lands in the wrapped row. */
+  .nav-dropdown-menu {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .nav-dropdown-menu-end {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 1450px) and (prefers-reduced-motion: reduce) {
+  .nav-links,
+  .nav-links > * {
+    transition: none;
+  }
+}
+
+/* Navbar dropdowns (Consultation menu, Notifications) */
+.nav-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 8px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 220px;
+  max-width: calc(100vw - 32px);
+  z-index: 1000;
+}
+
+/* Rightmost dropdowns (Notifications, Account) anchor from their right edge
+   instead of their left, so they can't extend past the viewport's edge. */
+.nav-dropdown-menu-end {
+  left: auto;
+  right: 0;
+}
+
+/* Notification list can grow long — scroll it instead of letting it push
+   past the bottom of the viewport. */
+.notif-menu {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: var(--text-dark);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.nav-dropdown-menu a:hover {
+  background: var(--bg);
+  color: var(--green);
+}
+
+/* Navbar-scoped hover polish. Buttons elsewhere in the app that also use
+   .btn-pill/.btn-pill-outline are untouched — these rules only apply inside
+   the navbar, and only add a transition + tone down the hover shadow so the
+   lift/shadow animates in smoothly instead of snapping. */
+.navbar-agri .btn-pill,
+.navbar-agri .btn-pill-outline {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease,
+    color 0.15s ease, border-color 0.15s ease;
+}
+
+.navbar-agri .btn-pill:hover,
+.navbar-agri .btn-pill-outline:hover {
+  box-shadow: 0 4px 10px rgba(35, 77, 32, 0.22);
+}
+
+/* The hamburger toggle had no hover feedback at all, unlike every other
+   navbar button — bring it in line with the same subtle, smooth pattern. */
+.navbar-toggle {
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.navbar-toggle:hover {
+  background: #e7ece3;
+}
+
+/* Filter dropdown panels (Experts, Organizations, Knowledge Resources, Map) */
+.filter-menu {
+  min-width: 260px;
+  max-width: calc(100vw - 32px);
+}
+
+.filter-menu .form-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* Buttons */
+.btn-pill {
+  background: linear-gradient(135deg, var(--green-light), var(--green-dark));
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 20px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  display: inline-block;
+}
+
+.btn-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(35, 77, 32, 0.35);
+  color: #fff;
+}
+
+.btn-pill-outline {
+  background: transparent;
+  border: 2px solid var(--green);
+  color: var(--green);
+  border-radius: 30px;
+  padding: 8px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.btn-pill-outline:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(35, 77, 32, 0.35);
+}
+
+/* Same pill shape as .btn-pill-outline, used for neutral/cancel actions
+   (Expert, Organization, Consultation and Map pages) so every button in
+   those modules shares one shape and differs only by purpose color. */
+.btn-pill-secondary {
+  background: transparent;
+  border: 2px solid #9aa39a;
+  color: #5b645b;
+  border-radius: 30px;
+  padding: 8px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn-pill-secondary:hover {
+  background: #f0f1ef;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+  color: #5b645b;
+}
+
+/* Same pill shape, used for destructive actions (Reject, Delete, Remove Photo). */
+.btn-pill-danger {
+  background: transparent;
+  border: 2px solid #c0392b;
+  color: #c0392b;
+  border-radius: 30px;
+  padding: 8px 20px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.btn-pill-danger:hover {
+  background: #fdecea;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(192, 57, 43, 0.25);
+  color: #a93226;
+}
+
+/* Compact size modifier for pill buttons inside list rows. */
+.btn-pill-sm {
+  padding: 5px 14px;
+  font-size: 0.85rem;
+}
+
+/* Bootstrap's default .card (square corners, thin gray border) restyled to
+   match the app's rounded/shadowed card convention used everywhere else. */
+.card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+/* Shared message-box styling, generalized from the pattern already used on
+   the Disease Submission / Tag Management pages, for pages that were still
+   using Bootstrap's raw .alert. */
+.app-alert {
+  border-radius: 10px;
+  padding: 12px 15px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+}
+
+.app-alert-success {
+  background: #e8f5e9;
+  color: #28632e;
+}
+
+.app-alert-danger {
+  background: #fdecea;
+  color: #a93226;
+}
+
+/* Shared empty/loading state styling, generalized from the Dashboard page's
+   pattern, for pages that were showing bare unstyled text. */
+.empty-state {
+  padding: 2rem 1rem;
+  text-align: center;
+  opacity: 0.65;
+  color: var(--text-dark);
+}
+
+.loading-state {
+  padding: 3rem 1rem;
+  text-align: center;
+  opacity: 0.7;
+  color: var(--text-dark);
+}
+
+/* Organizations page sidebar (organization owner only) — thin, spans full page height */
+.org-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 130px;
+  background: #fff;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 100px 10px 10px;
+  z-index: 5;
+}
+
+.org-sidebar-btn {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 8px 6px;
+  text-align: center;
+}
+
+.org-content-with-sidebar {
+  margin-left: 130px;
+}
+
+/* Organization / expert photos */
+.org-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.org-photo-large {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+/* Expert profile page photo (left column) */
+.expert-photo-large {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 16px;
+  display: block;
+  margin: 0 auto;
+}
+
+.expert-photo-placeholder {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  background: #e9ecef;
+  color: #999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* Name links inside lists (e.g. organization/expert cards) — no underline,
+   color change on hover instead. */
+.plain-link {
+  color: var(--text-dark);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.plain-link:hover {
+  color: var(--green);
+}
+
+/* Map page — left sidebar (filters + legend) and map filling the rest of the viewport */
+.map-page-layout {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  padding: 0 16px 16px;
+  height: calc(100vh - 180px);
+  min-height: 420px;
+}
+
+.map-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  overflow-y: auto;
+}
+
+.map-filter-panel {
+  background: var(--bg);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.map-search-results {
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+
+.map-legend {
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.map-nearby-list {
+  border-top: 1px solid #eee;
+  padding-top: 12px;
+}
+
+.map-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.leaflet-map {
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Marker popups are built as plain HTML strings (Leaflet can't render Vue
+   components inside them), so they render with Leaflet's own default
+   white-box styling unless overridden here to match the app's theme. */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+.leaflet-popup-content {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: var(--text-dark);
+  margin: 12px 14px;
+}
+
+.leaflet-popup-content strong {
+  color: var(--green-dark);
+}
+
+.leaflet-popup-content a {
+  color: var(--green);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.leaflet-popup-content a:hover {
+  text-decoration: underline;
+}
+
+.leaflet-popup-tip {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+}
+
+.map-legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+/* Hero (Home page) */
+.hero {
+  border-radius: 24px;
+  margin: 0 16px 16px;
+  padding: 60px 24px;
+  text-align: center;
+  background: linear-gradient(180deg, #8fbf7a 0%, #d9c46a 55%, #c9a94f 100%);
+  color: #173318;
+
+
+
+}
+
+.hero h1 {
+  font-size: 2.4rem;
+  font-weight: 800;
+  color: #1c4d20;
+}
+
+.hero p {
+  font-size: 1.1rem;
+  max-width: 600px;
+  margin: 16px auto 28px;
+  color: #20301c;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Home page — quick access grid (logged in) / feature highlights (guest) */
+.quick-links-section,
+.features-section {
+  padding: 48px 16px;
+}
+
+.quick-links-title {
+  text-align: center;
+  color: var(--green-dark);
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.quick-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.quick-link-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  text-decoration: none;
+  color: var(--text-dark);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+a.quick-link-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  color: var(--green-dark);
+}
+
+.quick-link-icon {
+  font-size: 1.8rem;
+}
+
+.quick-link-label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.feature-card {
+  cursor: default;
+}
+
+/* Login / Register */
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 70vh;
+  padding: 20px;
+}
+
+.auth-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 36px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.auth-card h2 {
+  color: var(--green-dark);
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.auth-card p.subtitle {
+  text-align: center;
+  color: #666;
+  margin-bottom: 24px;
+  font-size: 0.9rem;
+}
+
+.auth-card .btn-pill {
+  width: 100%;
+  margin-top: 10px;
+  text-align: center;
+}
+
+.auth-switch {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.9rem;
+}
+
+.auth-switch a {
+  color: var(--green);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.error-text {
+  color: #c0392b;
+  font-size: 0.9rem;
+  margin-top: 10px;
+  text-align: center;
+}
+/* Disease Submission */
+
+.disease-submission-page {
+  padding: 20px 16px 50px;
+}
+
+.disease-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.disease-header {
+  margin-bottom: 24px;
+}
+
+.disease-header h1 {
+  color: var(--green-dark);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.disease-header p {
+  color: #667064;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.disease-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 28px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.disease-section-header {
+  margin-bottom: 20px;
+}
+
+.disease-section-header h2 {
+  color: var(--green-dark);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 5px;
+}
+
+.disease-section-header p {
+  color: #707770;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.required {
+  color: #c0392b;
+}
+
+/* Tags */
+
+.disease-tag-search {
+  position: relative;
+}
+
+.disease-tag-dropdown {
+  position: absolute;
+  z-index: 100;
+  left: 0;
+  right: 0;
+  top: calc(100% + 5px);
+  background: #fff;
+  border: 1px solid #dce2d9;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.disease-tag-option {
+  display: block;
+  width: 100%;
+  border: none;
+  background: #fff;
+  padding: 11px 14px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  color: var(--text-dark);
+}
+
+.disease-tag-option:hover {
+  background: #f1f6ef;
+  color: var(--green-dark);
+}
+
+.disease-dropdown-status {
+  padding: 12px 14px;
+  color: #777;
+  font-size: 0.9rem;
+}
+
+.disease-selected-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.disease-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #e8f2e7;
+  color: var(--green-dark);
+  border-radius: 20px;
+  padding: 7px 10px 7px 13px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.disease-tag button {
+  border: none;
+  background: transparent;
+  color: var(--green-dark);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Image upload */
+
+.disease-upload-area {
+  border: 2px dashed #cbd7c8;
+  border-radius: 16px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.disease-upload-area:hover {
+  background: #f7faf6;
+  border-color: var(--green);
+}
+
+.disease-upload-area input {
+  display: none;
+}
+
+.disease-upload-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e8f2e7;
+  color: var(--green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.disease-upload-area strong {
+  color: var(--green-dark);
+}
+
+.disease-upload-area span {
+  color: #777;
+  font-size: 0.8rem;
+}
+
+.disease-image-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.disease-image-preview {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #eee;
+}
+
+.disease-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.disease-remove-image {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.disease-image-count {
+  margin-top: 10px;
+  text-align: right;
+  color: #777;
+  font-size: 0.8rem;
+}
+
+/* Messages */
+
+.disease-message {
+  border-radius: 10px;
+  padding: 12px 15px;
+  margin-bottom: 18px;
+  font-size: 0.9rem;
+}
+
+.disease-success {
+  background: #e8f5e9;
+  color: #28632e;
+}
+
+.disease-error {
+  background: #fdecea;
+  color: #a93226;
+}
+
+/* Submit */
+
+.disease-submit-area {
+  display: flex;
+  justify-content: flex-end;
+  padding: 4px 0;
+}
+
+.disease-submit-button {
+  min-width: 190px;
+  padding: 12px 24px;
+}
+
+.disease-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Mobile */
+
+@media (max-width: 650px) {
+  .disease-card {
+    padding: 20px;
+  }
+
+  .disease-image-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .disease-submit-area {
+    justify-content: stretch;
+  }
+
+  .disease-submit-button {
+    width: 100%;
+  }
+}
+
+/* Tag Management */
+
+.tag-management-page {
+  padding: 30px 16px 50px;
+}
+
+.tag-container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.tag-page-header {
+  margin-bottom: 24px;
+}
+
+.tag-page-header h1 {
+  color: var(--green-dark);
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.tag-page-header p {
+  color: #667064;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tag-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.tag-section-header {
+  margin-bottom: 24px;
+}
+
+.tag-section-header h2 {
+  color: var(--green-dark);
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.tag-section-header p {
+  color: #707770;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.tag-message {
+  border-radius: 10px;
+  padding: 12px 15px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
+}
+
+.tag-success {
+  background: #e8f5e9;
+  color: #28632e;
+}
+
+.tag-error {
+  background: #fdecea;
+  color: #a93226;
+}
+
+.tag-submit-button {
+  width: 100%;
+  padding: 11px 20px;
+}
+
+.tag-submit-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.tag-access-denied {
+  max-width: 600px;
+  margin: 50px auto;
+  padding: 0 16px;
+}
+
+.tag-access-denied h1 {
+  color: var(--green-dark);
+  margin-bottom: 8px;
+}
+
+.tag-access-denied p {
+  color: #666;
+  margin: 0;
+}
+
+/* ============================
+   Diagnosis History
+============================ */
+
+.diagnosis-page {
+  padding: 30px 16px;
+}
+
+.diagnosis-page h1 {
+  color: var(--green-dark);
+  font-weight: 700;
+}
+
+.match-card {
+  background: #fafafa;
+  border: 1px solid #e8e8e8;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+  transition: transform 0.15s ease,
+              box-shadow 0.15s ease;
+}
+
+.match-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.08);
+}
+
+.chip-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.chip {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: .9rem;
+  font-weight: 600;
+}
+
+.chip-green {
+  background: #dff6e4;
+  color: #1e6a37;
+}
+
+.chip-blue {
+  background: #ddeeff;
+  color: #0c4a87;
+}
+
+.chip-gray {
+  background: #ececec;
+  color: #555;
+}
+
+.progress {
+  height: 22px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  font-weight: 600;
+}
+
+.bg-orange {
+  background: #f39c12;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+  margin-top: 15px;
+}
+
+.disease-image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 2px solid #ddd;
+  cursor: pointer;
+  transition: transform .15s ease,
+              box-shadow .15s ease;
+}
+
+.disease-image:hover {
+  transform: scale(1.03);
+  box-shadow: 0 8px 18px rgba(0,0,0,.15);
+}
+
+.list-group-item {
+  border: none;
+  border-radius: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.list-group-item:last-child {
+  margin-bottom: 0;
+}
+
+.list-group-item:hover {
+  background: #f5f9f5;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.list-group-item.active {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+/* Shared status-badge system, generalized from the Dashboard page's
+   .dashboard-status* pattern, for status labels elsewhere in the app. */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.status-success {
+  background: rgba(25, 135, 84, 0.1);
+  color: #146c43;
+}
+
+.status-danger {
+  background: rgba(220, 53, 69, 0.1);
+  color: #b02a37;
+}
+
+.status-warning {
+  background: rgba(255, 193, 7, 0.12);
+  color: #946c00;
+}
+
+.status-info {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0a58ca;
+}
+
+.status-neutral {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text-dark);
+}
+
+/* Shared detail-page patterns (organization/expert profile pages): a
+   label+value grid for fixed fields, and a subtle section box for
+   free-text/list content — reused across both pages instead of each
+   inventing its own layout. */
+.detail-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.detail-info-item {
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.detail-info-label {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.65;
+  margin-bottom: 0.25rem;
+}
+
+.detail-info-value {
+  font-weight: 600;
+  word-break: break-word;
+}
+
+.detail-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.detail-section h4 {
+  color: var(--green-dark);
+  font-size: 1.05rem;
+  margin: 0 0 0.75rem;
+}
+
+.detail-section ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.detail-page-card {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+  .detail-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Star rating: read-only display + interactive picker (rating feature) */
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.star-rating .star {
+  color: var(--gold);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.star-rating .star.empty {
+  color: rgba(0, 0, 0, 0.15);
+}
+
+.star-rating.picker .star {
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.star-rating.picker .star:hover {
+  transform: scale(1.15);
+}
+
+.star-rating-count {
+  font-size: 0.8rem;
+  opacity: 0.65;
+  margin-left: 0.35rem;
+}
+
+.rating-section {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.rating-section h4 {
+  color: var(--green-dark);
+  font-size: 1.05rem;
+  margin: 0 0 0.75rem;
+}
+
+.rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.rating-form {
+  padding: 1rem;
+  border-radius: 10px;
+  background: #fff;
+  margin-bottom: 1.25rem;
+}
+
+.rating-list-item {
+  padding: 0.85rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.rating-list-item:first-child {
+  border-top: none;
+}
+
+.rating-list-item .rating-author {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.rating-list-item .rating-date {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.rating-list-item .rating-comment {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+}
+
+.rating-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+}
+
+/* Subtle lift for Bootstrap's own segmented button groups (filter tabs)
+   left in their joined shape rather than converted to pill buttons. */
+.btn-group .btn:hover {
+  transform: translateY(-1px);
+}
+
+.badge {
+  border-radius: 999px;
+}
+
+/* Diagnosis Report & Farming Expertise Feature Styles */
+.diagnosis-report-page,
+.farming-expertise-page,
+.provide-expertise-page {
+  background-color: var(--bg);
+  min-height: calc(100vh - 80px);
+}
+
+.page-title {
+  color: var(--green-dark);
+  font-weight: 700;
+}
+
+.case-list .list-group-item.active,
+.request-list .list-group-item.active {
+  background-color: var(--green-dark);
+  border-color: var(--green-dark);
+  color: #ffffff;
+}
+
+.case-list .list-group-item.active .text-muted,
+.request-list .list-group-item.active .text-muted {
+  color: #d1e7dd !important;
+}
+
+.style-img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+}
+
+.max-img-height {
+  max-height: 350px;
+  object-fit: contain;
+}
+
+.max-stock-grid {
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.stock-card {
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+}
+
+.stock-card:hover {
+  border-color: var(--green-dark) !important;
+  transform: translateY(-2px);
+}
+
+.stock-card.selected {
+  border: 2px solid var(--green-dark) !important;
+  background-color: #d1e7dd;
+}
+
+.stock-thumb {
+  height: 60px;
+  width: 100%;
+  object-fit: cover;
+}
+
+.stock-title {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.clickable-preview {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.clickable-preview:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 768px) {
+  .navbar-agri {
+    border-radius: 20px;
+    padding: 14px;
+  }
+
+  /* The organization sidebar becomes a normal row above the page content
+     instead of a fixed column, so it doesn't eat up screen width. */
+  .org-sidebar {
+    position: static;
+    flex-direction: row;
+    width: auto;
+    height: auto;
+    padding: 12px;
+    margin: 0 16px 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  }
+
+  .org-content-with-sidebar {
+    margin-left: 0;
+  }
+
+  /* Map page: sidebar and map stack instead of sitting side by side. */
+  .map-page-layout {
+    flex-direction: column;
+    height: auto;
+    padding: 0 8px 16px;
+  }
+
+  .map-sidebar {
+    width: auto;
+  }
+
+  .leaflet-map {
+    height: 55vh;
+    min-height: 320px;
+  }
+}
+/* =========================================================
+   FINANCIAL ANALYSIS PAGE AND EXPENSENSE MANAGEMENT
+   ========================================================= */
+
+.financial-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.financial-page-header {
+  margin-bottom: 2rem;
+}
+
+.financial-page-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.financial-page-header p {
+  margin: 0;
+  opacity: 0.75;
+}
+
+/* Crop selector */
+
+.financial-selector-card {
+  margin-bottom: 1.5rem;
+}
+
+.financial-selector {
+  max-width: 500px;
+}
+
+.financial-selector label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+/* Messages */
+
+.financial-message {
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.financial-error {
+  background: rgba(220, 53, 69, 0.1);
+  color: #b02a37;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.financial-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  opacity: 0.7;
+}
+
+/* Summary cards */
+
+.financial-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.financial-summary-card {
+  padding: 1.25rem;
+}
+
+.financial-summary-label {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 0.4rem;
+}
+
+.financial-summary-value {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.financial-summary-subtext {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+/* Main analysis grid */
+
+.financial-analysis-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.financial-card {
+  padding: 1.5rem;
+}
+
+.financial-card-header {
+  margin-bottom: 1.25rem;
+}
+
+.financial-card-header h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.financial-card-header p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* Cost breakdown */
+
+.financial-cost-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.financial-cost-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.financial-cost-category {
+  font-weight: 500;
+}
+
+.financial-cost-amount {
+  font-weight: 700;
+}
+
+.financial-total-row {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+/* Financial result */
+
+.financial-result {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.financial-result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.financial-result-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.financial-result-label {
+  opacity: 0.7;
+}
+
+.financial-result-value {
+  font-weight: 700;
+}
+
+/* Profit */
+
+.financial-profit-box {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(25, 135, 84, 0.08);
+  border: 1px solid rgba(25, 135, 84, 0.15);
+}
+
+.financial-profit-label {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 0.35rem;
+}
+
+.financial-profit-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+/* Margin */
+
+.financial-margin-box {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: rgba(13, 110, 253, 0.08);
+  border: 1px solid rgba(13, 110, 253, 0.15);
+}
+
+.financial-margin-label {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 0.35rem;
+}
+
+.financial-margin-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+/* No data */
+
+.financial-empty {
+  text-align: center;
+  padding: 2rem 1rem;
+  opacity: 0.65;
+}
+
+/* API note */
+
+.financial-note {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  opacity: 0.75;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .financial-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .financial-analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .financial-container {
+    padding: 1rem;
+  }
+
+  .financial-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .financial-summary-value {
+    font-size: 1.4rem;
+  }
+
+  .financial-card {
+    padding: 1rem;
+  }
+}
+
+/* Seasonal Performance */
+
+.seasonal-performance-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.seasonal-performance-header {
+  margin-bottom: 2rem;
+}
+
+.seasonal-performance-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.seasonal-performance-header p {
+  margin: 0;
+  opacity: 0.75;
+}
+
+.seasonal-performance-message {
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.seasonal-performance-error {
+  background: rgba(220, 53, 69, 0.1);
+  color: #b02a37;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+.seasonal-performance-loading {
+  text-align: center;
+  padding: 3rem 1rem;
+  opacity: 0.7;
+}
+
+/* Summary */
+
+.seasonal-performance-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.seasonal-performance-card {
+  padding: 1.25rem;
+  border-radius: 12px;
+}
+
+.seasonal-performance-label {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 0.4rem;
+}
+
+.seasonal-performance-value {
+  display: block;
+  font-size: 1.5rem;
+}
+
+.seasonal-performance-subtext {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+/* Section */
+
+.seasonal-performance-section {
+  margin-bottom: 2rem;
+}
+
+.seasonal-performance-section-header {
+  margin-bottom: 1rem;
+}
+
+.seasonal-performance-section-header h2 {
+  margin-bottom: 0.35rem;
+}
+
+.seasonal-performance-section-header p {
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* Crop cards */
+
+.seasonal-performance-crop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.seasonal-performance-crop-card {
+  padding: 1.5rem;
+  border-radius: 12px;
+}
+
+.seasonal-performance-crop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.seasonal-performance-crop-header h3 {
+  margin: 0 0 0.3rem;
+}
+
+.seasonal-performance-crop-header p {
+  margin: 0;
+  opacity: 0.7;
+}
+
+.seasonal-performance-season {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: rgba(25, 135, 84, 0.1);
+}
+
+/* Stats */
+
+.seasonal-performance-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.seasonal-performance-stats > div,
+.seasonal-performance-resources > div,
+.seasonal-performance-cycle > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.seasonal-performance-stats span,
+.seasonal-performance-resources span,
+.seasonal-performance-cycle span {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.seasonal-performance-stats strong,
+.seasonal-performance-resources strong,
+.seasonal-performance-cycle strong {
+  font-size: 1rem;
+}
+
+/* Resources */
+
+.seasonal-performance-resources {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding: 1rem 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.seasonal-performance-resources small {
+  opacity: 0.6;
+}
+
+/* Cycle */
+
+.seasonal-performance-cycle {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  padding: 1rem 0;
+}
+
+.seasonal-performance-details-button {
+  margin-top: 0.5rem;
+}
+
+/* Empty */
+
+.seasonal-performance-empty {
+  text-align: center;
+  padding: 2rem;
+  opacity: 0.65;
+}
+
+/* Modal */
+
+.seasonal-performance-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.seasonal-performance-modal {
+  width: min(800px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  border-radius: 14px;
+  background: var(--bs-body-bg, #fff);
+}
+
+.seasonal-performance-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.seasonal-performance-modal-header h2 {
+  margin: 0 0 0.3rem;
+}
+
+.seasonal-performance-modal-header p {
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* Detail */
+
+.seasonal-performance-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.seasonal-performance-detail-grid > div {
+  padding: 1rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.seasonal-performance-detail-grid span {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.65;
+  margin-bottom: 0.3rem;
+}
+
+.seasonal-performance-detail-grid strong {
+  display: block;
+}
+
+/* Expense breakdown */
+
+.seasonal-performance-expense-breakdown {
+  margin-top: 1.5rem;
+}
+
+.seasonal-performance-expense-breakdown h3 {
+  margin-bottom: 1rem;
+}
+
+.seasonal-performance-expense-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.8rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .seasonal-performance-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .seasonal-performance-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .seasonal-performance-container {
+    padding: 1rem;
+  }
+
+  .seasonal-performance-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .seasonal-performance-stats,
+  .seasonal-performance-resources,
+  .seasonal-performance-cycle,
+  .seasonal-performance-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .seasonal-performance-crop-header {
+    flex-direction: column;
+  }
+
+  .seasonal-performance-modal {
+    padding: 1rem;
+  }
+}
+
+/* =========================================================
+   Dashboard
+   ========================================================= */
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.dashboard-header {
+  margin-bottom: 2rem;
+}
+
+.dashboard-header h1 {
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-header p {
+  margin: 0;
+  opacity: 0.7;
+}
+
+/* Summary cards */
+
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-summary-card {
+  padding: 1.25rem;
+}
+
+.dashboard-summary-label {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin-bottom: 0.4rem;
+}
+
+.dashboard-summary-value {
+  display: block;
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+.dashboard-summary-subtext {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+/* Main dashboard sections */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-card {
+  padding: 1.5rem;
+}
+
+.dashboard-card-header {
+  margin-bottom: 1.25rem;
+}
+
+.dashboard-card-header h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.2rem;
+}
+
+.dashboard-card-header p {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+/* Crop health */
+
+.dashboard-health-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dashboard-health-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.dashboard-health-label {
+  font-weight: 500;
+}
+
+.dashboard-health-value {
+  font-weight: 700;
+}
+
+/* Status badges */
+
+.dashboard-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.dashboard-status-pending {
+  background: rgba(255, 193, 7, 0.12);
+  color: #946c00;
+}
+
+.dashboard-status-active {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0a58ca;
+}
+
+.dashboard-status-completed {
+  background: rgba(25, 135, 84, 0.1);
+  color: #146c43;
+}
+
+.dashboard-status-resolved {
+  background: rgba(25, 135, 84, 0.1);
+  color: #146c43;
+}
+
+/* Farming analytics */
+
+.dashboard-analytics-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.dashboard-analytics-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.85rem 1rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.dashboard-analytics-label {
+  opacity: 0.7;
+}
+
+.dashboard-analytics-value {
+  font-weight: 700;
+}
+
+/* Crop performance */
+
+.dashboard-crop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dashboard-crop-item {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.dashboard-crop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.dashboard-crop-name {
+  font-weight: 700;
+}
+
+.dashboard-crop-type {
+  font-size: 0.8rem;
+  opacity: 0.65;
+}
+
+.dashboard-crop-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.dashboard-crop-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-crop-stat-label {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.dashboard-crop-stat-value {
+  margin-top: 0.2rem;
+  font-weight: 600;
+}
+
+/* Recommendations / consultations */
+
+.dashboard-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dashboard-item {
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.dashboard-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.dashboard-item-title {
+  font-weight: 600;
+}
+
+.dashboard-item-description {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+/* Diagnosis updates */
+
+.dashboard-diagnosis-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.dashboard-diagnosis-item {
+  padding: 1rem;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.dashboard-diagnosis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.dashboard-diagnosis-crop {
+  font-weight: 700;
+}
+
+.dashboard-diagnosis-date {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.dashboard-symptoms {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+
+.dashboard-symptom {
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  background: rgba(25, 135, 84, 0.08);
+}
+
+/* Empty state */
+
+.dashboard-empty {
+  padding: 2rem 1rem;
+  text-align: center;
+  opacity: 0.65;
+}
+
+/* Loading */
+
+.dashboard-loading {
+  padding: 3rem 1rem;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/* Error */
+
+.dashboard-error {
+  padding: 0.9rem 1rem;
+  margin-bottom: 1.5rem;
+  border-radius: 10px;
+  background: rgba(220, 53, 69, 0.1);
+  color: #b02a37;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+/* Responsive */
+
+@media (max-width: 1000px) {
+  .dashboard-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .dashboard-container {
+    padding: 1rem;
+  }
+
+  .dashboard-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-card {
+    padding: 1rem;
+  }
+
+  .dashboard-crop-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-crop-header,
+  .dashboard-diagnosis-header {
+    flex-direction: column;
+  }
+}
+
+/* =====================================================================
+   AI Assistant, Crop Disease Analysis & Messaging (added features)
+   Reuses existing tokens: --green, --green-dark, --green-light, --gold,
+   --bg, --text-dark.
+   ===================================================================== */
+
+/* ---------- AI Assistant floating widget ---------- */
+.ai-assistant {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1050;
+}
+
+.ai-fab {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--green-light), var(--green-dark));
+  color: #fff;
+  font-size: 1.6rem;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(35, 77, 32, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ai-fab:hover { transform: translateY(-2px) scale(1.03); }
+.ai-fab-open { background: var(--green-dark); }
+
+.ai-panel {
+  position: absolute;
+  right: 0;
+  bottom: 74px;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: 560px;
+  max-height: calc(100vh - 120px);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ai-panel-header {
+  background: linear-gradient(135deg, var(--green-light), var(--green-dark));
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ai-title { font-weight: 700; font-size: 1.05rem; }
+.ai-subtitle { font-size: 0.78rem; opacity: 0.9; }
+.ai-close {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ai-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ai-empty { color: var(--text-dark); font-size: 0.9rem; }
+.ai-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.ai-chip {
+  background: #fff;
+  border: 1px solid var(--green-light);
+  color: var(--green-dark);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.ai-chip:hover { background: #eaf3ec; }
+
+.ai-bubble-row { display: flex; }
+.ai-row-user { justify-content: flex-end; }
+.ai-row-assistant { justify-content: flex-start; }
+
+.ai-bubble {
+  max-width: 80%;
+  padding: 10px 13px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+.ai-bubble-user {
+  background: linear-gradient(135deg, var(--green-light), var(--green));
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.ai-bubble-assistant {
+  background: #fff;
+  color: var(--text-dark);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom-left-radius: 4px;
+}
+.ai-line { margin: 0 0 4px; }
+.ai-line:last-child { margin-bottom: 0; }
+
+.ai-formatted > *:first-child { margin-top: 0; }
+.ai-formatted > *:last-child { margin-bottom: 0; }
+.ai-formatted p { margin: 0 0 8px; }
+.ai-formatted ul,
+.ai-formatted ol {
+  margin: 0 0 8px;
+  padding-left: 1.2em;
+}
+.ai-formatted li { margin-bottom: 2px; }
+.ai-formatted strong { font-weight: 700; }
+.ai-formatted em { font-style: italic; }
+.ai-formatted h1,
+.ai-formatted h2,
+.ai-formatted h3,
+.ai-formatted h4,
+.ai-formatted h5,
+.ai-formatted h6 {
+  margin: 0 0 6px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.ai-formatted code {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-size: 0.85em;
+}
+.ai-formatted pre {
+  background: rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  padding: 8px 10px;
+  overflow-x: auto;
+  margin: 0 0 8px;
+}
+.ai-formatted pre code { background: none; padding: 0; }
+.ai-formatted blockquote {
+  margin: 0 0 8px;
+  padding-left: 10px;
+  border-left: 3px solid rgba(0, 0, 0, 0.12);
+  color: var(--text-dark);
+  opacity: 0.85;
+}
+.ai-formatted a { color: var(--green-dark); font-weight: 600; }
+.ai-formatted table { border-collapse: collapse; margin: 0 0 8px; font-size: 0.85em; }
+.ai-formatted th,
+.ai-formatted td { border: 1px solid rgba(0, 0, 0, 0.12); padding: 3px 6px; }
+
+.ai-links { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.ai-link {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--green-dark);
+  text-decoration: none;
+}
+.ai-link:hover { text-decoration: underline; }
+
+.ai-typing { display: flex; gap: 4px; align-items: center; }
+.ai-typing span {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green-light);
+  animation: ai-blink 1.2s infinite ease-in-out both;
+}
+.ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+.ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ai-blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+.ai-input-row {
+  display: flex;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.07);
+  background: #fff;
+}
+.ai-input {
+  flex: 1;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 999px;
+  padding: 9px 14px;
+  font-size: 0.9rem;
+  outline: none;
+}
+.ai-input:focus { border-color: var(--green-light); }
+.ai-send {
+  border: none;
+  background: linear-gradient(135deg, var(--green-light), var(--green-dark));
+  color: #fff;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ai-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ai-stop {
+  background: #c0392b;
+}
+.ai-stop:hover { background: #a93226; }
+
+.ai-icon-btn {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: #fff;
+  color: var(--text-dark);
+  font-size: 1.05rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
+}
+.ai-icon-btn:hover { background: var(--bg); }
+
+.ai-sources {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ai-source-card {
+  display: block;
+  background: var(--bg);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 8px 10px;
+  text-decoration: none;
+  color: var(--text-dark);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.ai-source-card:hover {
+  background: #eaf3ec;
+  border-color: var(--green-light);
+}
+.ai-source-title {
+  display: block;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--green-dark);
+}
+.ai-source-detail {
+  display: block;
+  font-size: 0.78rem;
+  color: #666;
+  margin-top: 2px;
+}
+
+.ai-slide-enter-active, .ai-slide-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.ai-slide-enter-from, .ai-slide-leave-to { opacity: 0; transform: translateY(12px); }
+
+/* ---------- Crop Disease Analysis ---------- */
+.ca-header { margin-bottom: 16px; }
+
+.ca-card { padding: 20px; }
+
+.ca-dropzone {
+  display: block;
+  border: 2px dashed var(--green-light);
+  border-radius: 14px;
+  background: var(--bg);
+  padding: 26px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ca-dropzone:hover { border-color: var(--green-dark); background: #eef4ef; }
+.ca-dropzone-filled { padding: 12px; }
+.ca-drop-inner { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.ca-drop-icon { font-size: 2rem; }
+.ca-preview { max-width: 100%; max-height: 260px; border-radius: 10px; object-fit: contain; }
+.ca-change { display: block; margin-top: 8px; font-size: 0.8rem; color: var(--green-dark); }
+
+.ca-processing { display: flex; align-items: center; gap: 10px; color: var(--green-dark); font-size: 0.9rem; }
+.ca-spinner {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 3px solid rgba(76, 154, 91, 0.3);
+  border-top-color: var(--green-dark);
+  animation: ca-spin 0.8s linear infinite;
+}
+@keyframes ca-spin { to { transform: rotate(360deg); } }
+
+.ca-result-empty { display: flex; align-items: center; justify-content: center; min-height: 220px; }
+
+.ca-pred-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.ca-pred-label { font-size: 1.4rem; font-weight: 700; color: var(--green-dark); }
+.ca-sci { color: var(--text-dark); opacity: 0.75; }
+
+.ca-conf-badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.ca-conf-high { background: #e3f4e6; color: #1e6b2c; }
+.ca-conf-mid { background: #fbf1d8; color: #8a6d18; }
+.ca-conf-low { background: #fbe3e0; color: #a13328; }
+
+.ca-uncertain { margin-top: 14px; font-size: 0.86rem; }
+
+.ca-alts { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ca-alts-title { font-size: 0.82rem; color: var(--text-dark); opacity: 0.7; }
+.ca-alt-chip {
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 4px 11px;
+  font-size: 0.82rem;
+}
+
+.ca-report { display: flex; flex-direction: column; gap: 10px; }
+.ca-row { display: grid; grid-template-columns: 190px 1fr; gap: 12px; }
+.ca-row-label { font-weight: 600; color: var(--green-dark); }
+.ca-row-value { color: var(--text-dark); }
+
+.ca-disclaimer {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fbf1d8;
+  color: #7a5f14;
+  font-size: 0.82rem;
+}
+.ca-report-meta { margin-top: 12px; font-size: 0.76rem; color: var(--text-dark); opacity: 0.55; }
+
+.ca-history { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.ca-history-item { display: flex; gap: 10px; padding: 10px; align-items: center; }
+.ca-history-img { width: 56px; height: 56px; border-radius: 8px; object-fit: cover; }
+.ca-history-body { min-width: 0; flex: 1; }
+.ca-history-delete { flex-shrink: 0; }
+
+@media (max-width: 576px) {
+  .ca-row { grid-template-columns: 1fr; gap: 2px; }
+  .ca-row-label { opacity: 0.8; }
+}
+
+/* ---------- Messaging ---------- */
+.messages-page { max-width: 1100px; }
+
+.msg-shell {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 72vh;
+  min-height: 480px;
+  padding: 0;
+  overflow: hidden;
+}
+
+.msg-list {
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.msg-list-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+.msg-list-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.msg-list-head-actions .ai-icon-btn {
+  width: 34px;
+  height: 34px;
+  font-size: 0.95rem;
+}
+.msg-search-box {
+  padding: 0 16px 12px;
+}
+.msg-conv-list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; }
+.msg-conv-item {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  transition: background 0.12s ease;
+}
+.msg-conv-item:hover { background: var(--bg); }
+.msg-conv-active { background: #eaf3ec; }
+
+.msg-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--green-light), var(--green-dark));
+  color: #fff; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden;
+}
+.msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.msg-avatar-sm { width: 38px; height: 38px; font-size: 0.85rem; }
+
+.msg-conv-main { flex: 1; min-width: 0; }
+.msg-conv-top { display: flex; justify-content: space-between; gap: 8px; }
+.msg-conv-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.msg-conv-time { font-size: 0.72rem; color: var(--text-dark); opacity: 0.5; flex-shrink: 0; }
+.msg-conv-bottom { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.msg-conv-preview {
+  font-size: 0.82rem; color: var(--text-dark); opacity: 0.65;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.msg-unread {
+  background: var(--green-dark); color: #fff;
+  border-radius: 999px; padding: 1px 8px;
+  font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
+}
+
+.msg-chat { display: flex; flex-direction: column; min-height: 0; }
+.msg-chat-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+.msg-back { display: none; border: none; background: transparent; font-size: 1.3rem; cursor: pointer; color: var(--green-dark); }
+.msg-view-profile { font-size: 0.78rem; color: var(--green-dark); text-decoration: none; }
+.msg-view-profile:hover { text-decoration: underline; }
+
+.msg-thread {
+  flex: 1; overflow-y: auto; padding: 16px;
+  background: var(--bg);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.msg-bubble-row { display: flex; }
+.msg-mine { justify-content: flex-end; }
+.msg-theirs { justify-content: flex-start; }
+.msg-bubble {
+  max-width: 72%;
+  padding: 8px 12px;
+  border-radius: 14px;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  position: relative;
+  word-wrap: break-word;
+}
+.msg-mine .msg-bubble {
+  background: linear-gradient(135deg, var(--green-light), var(--green));
+  color: #fff; border-bottom-right-radius: 4px;
+}
+.msg-theirs .msg-bubble {
+  background: #fff; color: var(--text-dark);
+  border: 1px solid rgba(0, 0, 0, 0.08); border-bottom-left-radius: 4px;
+}
+.msg-text { display: block; }
+.msg-time { display: block; font-size: 0.66rem; opacity: 0.65; margin-top: 3px; text-align: right; }
+
+.msg-input-row {
+  display: flex; gap: 8px; padding: 12px 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08); background: #fff;
+}
+.msg-input {
+  flex: 1; border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 999px; padding: 10px 16px; font-size: 0.92rem; outline: none;
+}
+.msg-input:focus { border-color: var(--green-light); }
+.msg-send { padding: 8px 20px; }
+
+.msg-chat-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; }
+
+/* Expert picker modal */
+.msg-modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1100; padding: 16px;
+}
+.msg-modal { width: 440px; max-width: 100%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; }
+.msg-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.msg-expert-list { overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.msg-expert-item {
+  display: flex; gap: 10px; align-items: center;
+  border: none; background: transparent; text-align: left;
+  padding: 10px; border-radius: 10px; cursor: pointer; transition: background 0.12s ease;
+}
+.msg-expert-item:hover { background: var(--bg); }
+
+/* Mobile: show one pane at a time */
+@media (max-width: 768px) {
+  .msg-shell { grid-template-columns: 1fr; height: 78vh; }
+  .msg-chat { display: none; }
+  .msg-list { display: flex; }
+  .msg-shell.msg-show-chat .msg-list { display: none; }
+  .msg-shell.msg-show-chat .msg-chat { display: flex; }
+  .msg-back { display: inline-block; }
+}
