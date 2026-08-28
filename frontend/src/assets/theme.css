@@ -2,9 +2,48 @@
   --green-dark: #234d20;
   --green: #2f6b3a;
   --green-light: #4c9a5b;
+  --green-soft: #eaf3ec;
   --gold: #d9b64c;
   --bg: #f4f6f2;
+  --surface: #ffffff;
   --text-dark: #1f2a1c;
+  --text-muted: #6a756a;
+  --border: rgba(31, 42, 28, 0.10);
+  --border-strong: rgba(31, 42, 28, 0.16);
+
+  /* Consistent radii */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* Consistent elevation */
+  --shadow-sm: 0 1px 3px rgba(24, 40, 22, 0.06), 0 1px 2px rgba(24, 40, 22, 0.05);
+  --shadow-md: 0 6px 18px rgba(24, 40, 22, 0.10);
+  --shadow-lg: 0 14px 40px rgba(24, 40, 22, 0.16);
+
+  /* Single source of truth for stacking order. Higher = closer to the user.
+     The Leaflet map is isolated into its own stacking context (see
+     .leaflet-map below) so its internal panes/controls can never rise above
+     these app chrome layers. */
+  --z-map: 1;
+  --z-navbar: 1000;
+  --z-dropdown: 1100;
+  --z-fab: 1200;
+  --z-drawer-backdrop: 1290;
+  --z-drawer: 1300;
+  --z-modal: 1400;
+  --z-toast: 1500;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Filled brand surfaces that always carry WHITE text (page banners,
+     primary CTAs, active tabs). These deliberately do NOT invert in dark
+     mode — same principle as .hero — otherwise white text lands on a light
+     green fill and becomes unreadable. */
+  --brand-fill: #2f6b3a;
+  --brand-fill-hover: #234d20;
+  --brand-banner: linear-gradient(135deg, #3f8a4f 0%, #1d4322 100%);
 }
 
 html,
@@ -32,37 +71,78 @@ body {
 .app-footer {
   padding: 16px;
   text-align: center;
-  background: #fff;
+  background: var(--surface);
   color: var(--text-dark);
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid var(--border);
 }
 
 /* Navbar */
 .navbar-agri {
-  background: #fff;
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: saturate(180%) blur(12px);
+  backdrop-filter: saturate(180%) blur(12px);
+  border: 1px solid var(--border);
   border-radius: 40px;
-  padding: 12px 24px;
+  padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   margin: 16px;
-  position: relative;
-  z-index: 100;
+  position: sticky;
+  top: 12px;
+  z-index: var(--z-navbar);
 }
 
-.navbar-row {
+/* Left cluster: drawer menu button + brand */
+.navbar-brand-group {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  width: 100%;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Drawer trigger sitting directly next to the AgriSphere logo */
+.drawer-menu-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--green-dark);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.18s var(--ease), border-color 0.18s var(--ease),
+    transform 0.18s var(--ease);
+}
+
+.drawer-menu-btn:hover {
+  background: var(--green-soft);
+  border-color: var(--green-light);
+  transform: translateY(-1px);
+}
+
+.drawer-menu-btn:focus-visible {
+  outline: 3px solid rgba(76, 154, 91, 0.4);
+  outline-offset: 2px;
+}
+
+.drawer-menu-btn svg {
+  width: 22px;
+  height: 22px;
 }
 
 .navbar-agri .logo {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 1.3rem;
   text-decoration: none;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .navbar-agri .logo .agri {
@@ -89,18 +169,6 @@ body {
   flex-shrink: 0;
 }
 
-.nav-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  align-items: center;
-  justify-content: flex-end;
-}
-
-.notif-btn {
-  position: relative;
-}
-
 .notif-badge {
   display: inline-block;
   margin-left: 4px;
@@ -112,111 +180,11 @@ body {
   font-weight: 700;
 }
 
-.account-btn {
-  white-space: nowrap;
-}
-
 /* Below this width the nav links no longer comfortably fit in one row, so
    they collapse behind the hamburger toggle instead of wrapping messily.
-   (The logged-in farmer/expert nav has up to 9 items and needs ~1350-1400px
-   to lay out in a single row without an uneven wrap, so the threshold sits
-   above that rather than at a generic tablet breakpoint.) */
-@media (max-width: 1450px) {
-  .navbar-agri {
-    flex-direction: column;
-    align-items: stretch;
-    border-radius: 24px;
-  }
-
-  .navbar-toggle {
-    display: flex;
-  }
-
-  /* Wraps like the desktop pill row (not a full-width vertical stack), so
-     the expanded state stays a compact block inside the navbar island
-     instead of ballooning into a full-screen list. */
-  .nav-links {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    gap: 8px;
-    max-height: 0;
-    opacity: 0;
-    overflow: hidden;
-    pointer-events: none;
-    margin-top: 0;
-    transition: max-height 0.4s ease, opacity 0.25s ease, margin-top 0.4s ease;
-  }
-
-  .nav-links-open {
-    max-height: 600px;
-    opacity: 1;
-    pointer-events: auto;
-    margin-top: 12px;
-    /* Once open, stop clipping — a nested dropdown's panel extends below
-       this box, and overflow:hidden (needed while collapsed, so the height
-       transition doesn't spill content) would otherwise cut it off. */
-    overflow: visible;
-  }
-
-  /* Each item unveils on its own, staggered right-to-left, rolling out
-     from the toggle button's corner (up + across) rather than just fading
-     in place. */
-  .nav-links > * {
-    opacity: 0;
-    transform: translate(24px, -10px);
-    transition: opacity 0.25s ease, transform 0.25s ease;
-  }
-
-  .nav-links-open > * {
-    opacity: 1;
-    /* `none`, not translate(0,0) — a translate() of any kind (even a
-       no-op) still creates a new stacking context, which would trap a
-       dropdown panel's z-index inside its own item instead of letting it
-       compete globally, so later nav items paint over it. */
-    transform: none;
-  }
-
-  /* Stagger by distance from the last item (the rightmost one in the
-     unwrapped desktop row), so the reveal sweeps right-to-left regardless
-     of how many items a given role has — same delays drive the close too,
-     so collapsing sweeps the same direction. */
-  .nav-links > *:nth-last-child(1) { transition-delay: 0s; }
-  .nav-links > *:nth-last-child(2) { transition-delay: 0.035s; }
-  .nav-links > *:nth-last-child(3) { transition-delay: 0.07s; }
-  .nav-links > *:nth-last-child(4) { transition-delay: 0.105s; }
-  .nav-links > *:nth-last-child(5) { transition-delay: 0.14s; }
-  .nav-links > *:nth-last-child(6) { transition-delay: 0.175s; }
-  .nav-links > *:nth-last-child(7) { transition-delay: 0.21s; }
-  .nav-links > *:nth-last-child(8) { transition-delay: 0.245s; }
-  .nav-links > *:nth-last-child(9) { transition-delay: 0.28s; }
-
-  /* Nested dropdowns keep floating over the page (same as desktop) instead
-     of flowing inline — anchored to the middle of their own trigger button
-     so they stay clear of the viewport edge regardless of where that
-     button lands in the wrapped row. */
-  .nav-dropdown-menu {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-  }
-
-  .nav-dropdown-menu-end {
-    left: 50%;
-    right: auto;
-    transform: translateX(-50%);
-  }
-}
-
-@media (max-width: 1450px) and (prefers-reduced-motion: reduce) {
-  .nav-links,
-  .nav-links > * {
-    transition: none;
-  }
-}
+   The role navs are now consolidated into a few grouped dropdowns (matching
+   the drawer's categories), so the row fits well above this threshold — and
+   below it the left drawer is the primary way to navigate anyway. */
 
 /* Navbar dropdowns (Consultation menu, Notifications) */
 .nav-dropdown {
@@ -229,7 +197,7 @@ body {
   top: 100%;
   left: 0;
   margin-top: 8px;
-  background: #fff;
+  background: var(--surface);
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   padding: 8px;
@@ -238,7 +206,14 @@ body {
   gap: 2px;
   min-width: 220px;
   max-width: calc(100vw - 32px);
-  z-index: 1000;
+  z-index: var(--z-dropdown);
+  border: 1px solid var(--border);
+  animation: dropdown-in 0.16s var(--ease);
+}
+
+@keyframes dropdown-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Rightmost dropdowns (Notifications, Account) anchor from their right edge
@@ -274,16 +249,6 @@ body {
    .btn-pill/.btn-pill-outline are untouched — these rules only apply inside
    the navbar, and only add a transition + tone down the hover shadow so the
    lift/shadow animates in smoothly instead of snapping. */
-.navbar-agri .btn-pill,
-.navbar-agri .btn-pill-outline {
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease,
-    color 0.15s ease, border-color 0.15s ease;
-}
-
-.navbar-agri .btn-pill:hover,
-.navbar-agri .btn-pill-outline:hover {
-  box-shadow: 0 4px 10px rgba(35, 77, 32, 0.22);
-}
 
 /* The hamburger toggle had no hover feedback at all, unlike every other
    navbar button — bring it in line with the same subtle, smooth pattern. */
@@ -444,8 +409,8 @@ body {
   bottom: 0;
   left: 0;
   width: 130px;
-  background: #fff;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -497,8 +462,8 @@ body {
   max-width: 220px;
   aspect-ratio: 1 / 1;
   border-radius: 16px;
-  background: #e9ecef;
-  color: #999;
+  background: var(--surface-muted);
+  color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -530,7 +495,7 @@ body {
 .map-sidebar {
   width: 280px;
   flex-shrink: 0;
-  background: #fff;
+  background: var(--surface);
   border-radius: 16px;
   padding: 16px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
@@ -569,6 +534,20 @@ body {
   height: 100%;
   border-radius: 16px;
   overflow: hidden;
+  /* Root cause fix for "dropdowns hide behind the map": Leaflet gives its own
+     panes/controls z-index values up to 1000. Isolating the map into a low
+     stacking context (position + z-index + isolation) traps ALL of those
+     internal values below the app chrome (navbar, dropdowns, drawer, modals,
+     FABs), instead of patching a single dropdown. */
+  position: relative;
+  z-index: var(--z-map);
+  isolation: isolate;
+}
+
+/* Belt-and-braces: any Leaflet container in the app is contained the same way. */
+.leaflet-container {
+  position: relative;
+  z-index: var(--z-map);
 }
 
 /* Marker popups are built as plain HTML strings (Leaflet can't render Vue
@@ -663,7 +642,7 @@ body {
 }
 
 .quick-link-card {
-  background: #fff;
+  background: var(--surface);
   border-radius: 16px;
   padding: 24px 16px;
   display: flex;
@@ -706,7 +685,7 @@ a.quick-link-card:hover {
 }
 
 .auth-card {
-  background: #fff;
+  background: var(--surface);
   border-radius: 20px;
   padding: 36px;
   width: 100%;
@@ -722,7 +701,7 @@ a.quick-link-card:hover {
 
 .auth-card p.subtitle {
   text-align: center;
-  color: #666;
+  color: var(--text-muted);
   margin-bottom: 24px;
   font-size: 0.9rem;
 }
@@ -780,7 +759,7 @@ a.quick-link-card:hover {
 }
 
 .disease-card {
-  background: #fff;
+  background: var(--surface);
   border-radius: 20px;
   padding: 28px;
   margin-bottom: 18px;
@@ -820,7 +799,7 @@ a.quick-link-card:hover {
   left: 0;
   right: 0;
   top: calc(100% + 5px);
-  background: #fff;
+  background: var(--surface);
   border: 1px solid #dce2d9;
   border-radius: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
@@ -833,7 +812,7 @@ a.quick-link-card:hover {
   display: block;
   width: 100%;
   border: none;
-  background: #fff;
+  background: var(--surface);
   padding: 11px 14px;
   text-align: left;
   font: inherit;
@@ -938,7 +917,7 @@ a.quick-link-card:hover {
   aspect-ratio: 1;
   border-radius: 12px;
   overflow: hidden;
-  background: #eee;
+  background: var(--surface-muted);
 }
 
 .disease-image-preview img {
@@ -1055,7 +1034,7 @@ a.quick-link-card:hover {
 }
 
 .tag-card {
-  background: #fff;
+  background: var(--surface);
   border-radius: 20px;
   padding: 30px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
@@ -1118,7 +1097,7 @@ a.quick-link-card:hover {
 }
 
 .tag-access-denied p {
-  color: #666;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -1230,7 +1209,7 @@ a.quick-link-card:hover {
 }
 
 .list-group-item:hover {
-  background: #f5f9f5;
+  background: var(--surface-muted);
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
@@ -1390,13 +1369,13 @@ a.quick-link-card:hover {
 .rating-form {
   padding: 1rem;
   border-radius: 10px;
-  background: #fff;
+  background: var(--surface);
   margin-bottom: 1.25rem;
 }
 
 .rating-list-item {
   padding: 0.85rem 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--border);
 }
 
 .rating-list-item:first-child {
@@ -1478,7 +1457,7 @@ a.quick-link-card:hover {
 
 .stock-card {
   transition: all 0.2s ease;
-  background-color: #ffffff;
+  background-color: var(--surface);
 }
 
 .stock-card:hover {
@@ -1703,7 +1682,7 @@ a.quick-link-card:hover {
 .financial-total-row {
   margin-top: 0.5rem;
   padding-top: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: space-between;
   font-weight: 700;
@@ -1722,7 +1701,7 @@ a.quick-link-card:hover {
   justify-content: space-between;
   align-items: center;
   padding-bottom: 0.9rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 
 .financial-result-row:last-child {
@@ -1996,8 +1975,8 @@ a.quick-link-card:hover {
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   padding: 1rem 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .seasonal-performance-resources small {
@@ -2030,7 +2009,7 @@ a.quick-link-card:hover {
 .seasonal-performance-overlay {
   position: fixed;
   inset: 0;
-  z-index: 1050;
+  z-index: var(--z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2103,7 +2082,7 @@ a.quick-link-card:hover {
   display: flex;
   justify-content: space-between;
   padding: 0.8rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 
 /* Responsive */
@@ -2510,7 +2489,7 @@ a.quick-link-card:hover {
   position: fixed;
   right: 20px;
   bottom: 20px;
-  z-index: 1050;
+  z-index: var(--z-fab);
 }
 
 .ai-fab {
@@ -2539,7 +2518,7 @@ a.quick-link-card:hover {
   max-width: calc(100vw - 32px);
   height: 560px;
   max-height: calc(100vh - 120px);
-  background: #fff;
+  background: var(--surface);
   border-radius: 18px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.22);
   display: flex;
@@ -2579,7 +2558,7 @@ a.quick-link-card:hover {
 .ai-empty { color: var(--text-dark); font-size: 0.9rem; }
 .ai-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
 .ai-chip {
-  background: #fff;
+  background: var(--surface);
   border: 1px solid var(--green-light);
   color: var(--green-dark);
   border-radius: 999px;
@@ -2608,9 +2587,9 @@ a.quick-link-card:hover {
   border-bottom-right-radius: 4px;
 }
 .ai-bubble-assistant {
-  background: #fff;
+  background: var(--surface);
   color: var(--text-dark);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
 }
 .ai-line { margin: 0 0 4px; }
@@ -2662,7 +2641,7 @@ a.quick-link-card:hover {
 .ai-formatted a { color: var(--green-dark); font-weight: 600; }
 .ai-formatted table { border-collapse: collapse; margin: 0 0 8px; font-size: 0.85em; }
 .ai-formatted th,
-.ai-formatted td { border: 1px solid rgba(0, 0, 0, 0.12); padding: 3px 6px; }
+.ai-formatted td { border: 1px solid var(--border); padding: 3px 6px; }
 
 .ai-links { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
 .ai-link {
@@ -2687,12 +2666,12 @@ a.quick-link-card:hover {
   display: flex;
   gap: 8px;
   padding: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.07);
-  background: #fff;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
 }
 .ai-input {
   flex: 1;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-strong);
   border-radius: 999px;
   padding: 9px 14px;
   font-size: 0.9rem;
@@ -2720,8 +2699,8 @@ a.quick-link-card:hover {
   width: 38px;
   height: 38px;
   border-radius: 999px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  background: #fff;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
   color: var(--text-dark);
   font-size: 1.05rem;
   cursor: pointer;
@@ -2741,7 +2720,7 @@ a.quick-link-card:hover {
 .ai-source-card {
   display: block;
   background: var(--bg);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 8px 10px;
   text-decoration: none;
@@ -2761,7 +2740,7 @@ a.quick-link-card:hover {
 .ai-source-detail {
   display: block;
   font-size: 0.78rem;
-  color: #666;
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -2783,7 +2762,7 @@ a.quick-link-card:hover {
   cursor: pointer;
   transition: border-color 0.15s ease, background 0.15s ease;
 }
-.ca-dropzone:hover { border-color: var(--green-dark); background: #eef4ef; }
+.ca-dropzone:hover { border-color: var(--green-dark); background: var(--green-50); }
 .ca-dropzone-filled { padding: 12px; }
 .ca-drop-inner { display: flex; flex-direction: column; gap: 6px; align-items: center; }
 .ca-drop-icon { font-size: 2rem; }
@@ -2867,7 +2846,7 @@ a.quick-link-card:hover {
 }
 
 .msg-list {
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -2877,7 +2856,7 @@ a.quick-link-card:hover {
   align-items: center;
   justify-content: space-between;
   padding: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid var(--border);
 }
 .msg-list-head-actions {
   display: flex;
@@ -2898,7 +2877,7 @@ a.quick-link-card:hover {
   gap: 10px;
   padding: 12px 16px;
   cursor: pointer;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid var(--border);
   transition: background 0.12s ease;
 }
 .msg-conv-item:hover { background: var(--bg); }
@@ -2933,7 +2912,7 @@ a.quick-link-card:hover {
 .msg-chat-head {
   display: flex; align-items: center; gap: 10px;
   padding: 12px 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 .msg-back { display: none; border: none; background: transparent; font-size: 1.3rem; cursor: pointer; color: var(--green-dark); }
 .msg-view-profile { font-size: 0.78rem; color: var(--green-dark); text-decoration: none; }
@@ -2961,18 +2940,18 @@ a.quick-link-card:hover {
   color: #fff; border-bottom-right-radius: 4px;
 }
 .msg-theirs .msg-bubble {
-  background: #fff; color: var(--text-dark);
-  border: 1px solid rgba(0, 0, 0, 0.08); border-bottom-left-radius: 4px;
+  background: var(--surface); color: var(--text-dark);
+  border: 1px solid var(--border); border-bottom-left-radius: 4px;
 }
 .msg-text { display: block; }
 .msg-time { display: block; font-size: 0.66rem; opacity: 0.65; margin-top: 3px; text-align: right; }
 
 .msg-input-row {
   display: flex; gap: 8px; padding: 12px 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08); background: #fff;
+  border-top: 1px solid var(--border); background: var(--surface);
 }
 .msg-input {
-  flex: 1; border: 1px solid rgba(0, 0, 0, 0.15);
+  flex: 1; border: 1px solid var(--border-strong);
   border-radius: 999px; padding: 10px 16px; font-size: 0.92rem; outline: none;
 }
 .msg-input:focus { border-color: var(--green-light); }
@@ -2984,7 +2963,7 @@ a.quick-link-card:hover {
 .msg-modal-backdrop {
   position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4);
   display: flex; align-items: center; justify-content: center;
-  z-index: 1100; padding: 16px;
+  z-index: var(--z-modal); padding: 16px;
 }
 .msg-modal { width: 440px; max-width: 100%; max-height: 80vh; padding: 20px; display: flex; flex-direction: column; }
 .msg-modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
@@ -3004,4 +2983,2329 @@ a.quick-link-card:hover {
   .msg-shell.msg-show-chat .msg-list { display: none; }
   .msg-shell.msg-show-chat .msg-chat { display: flex; }
   .msg-back { display: inline-block; }
+}
+
+/* =====================================================================
+   MODERN UI LAYER  (AgriSphere frontend modernization)
+   Additive styling only — no existing selectors removed. Groups:
+   1) Left drawer   2) Floating message launcher   3) Navbar polish
+   4) Global form/card/button polish   5) Responsive & overflow safety
+   ===================================================================== */
+
+/* ---------- 1) LEFT DRAWER ------------------------------------------ */
+.app-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 34, 18, 0.42);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  z-index: var(--z-drawer-backdrop);
+}
+
+.app-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 320px;
+  max-width: 86vw;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-drawer);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.app-drawer-header {
+  position: relative;
+  padding: 22px 20px 20px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--green-light), var(--green-dark));
+}
+
+.app-drawer-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s var(--ease);
+}
+.app-drawer-close:hover { background: rgba(255, 255, 255, 0.30); }
+
+.drawer-avatar {
+  width: 66px;
+  height: 66px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: rgba(255, 255, 255, 0.22);
+  border: 2px solid rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.drawer-avatar svg { width: 40px; height: 40px; color: #fff; }
+.drawer-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.drawer-user-name {
+  margin-top: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.drawer-user-role {
+  font-size: 0.82rem;
+  opacity: 0.9;
+  text-transform: capitalize;
+}
+.drawer-profile-link {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #fff;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  transition: background 0.15s var(--ease);
+}
+.drawer-profile-link:hover { background: rgba(255, 255, 255, 0.28); color: #fff; }
+
+.drawer-guest-actions { display: flex; gap: 10px; margin-top: 14px; }
+
+.app-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 12px 20px;
+}
+
+.drawer-section { margin-top: 8px; }
+.drawer-section + .drawer-section { margin-top: 4px; }
+
+.drawer-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 14px 12px 6px;
+  margin: 0;
+}
+
+.drawer-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: var(--text-dark);
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), color 0.15s var(--ease),
+    border-color 0.15s var(--ease);
+}
+.drawer-link:hover {
+  background: var(--green-soft);
+  color: var(--green-dark);
+}
+.drawer-link.router-link-active {
+  background: var(--green-soft);
+  color: var(--green-dark);
+  border-color: rgba(76, 154, 91, 0.35);
+  font-weight: 600;
+}
+.drawer-link-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--green);
+}
+.drawer-link.router-link-active .drawer-link-icon { color: var(--green-dark); }
+.drawer-link-icon svg { width: 20px; height: 20px; }
+
+.drawer-link-badge {
+  margin-left: auto;
+  background: #c0392b;
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.app-drawer-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+}
+.drawer-logout {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Drawer + backdrop transitions */
+.drawer-slide-enter-from,
+.drawer-slide-leave-to { transform: translateX(-100%); }
+.drawer-slide-enter-active,
+.drawer-slide-leave-active { transition: transform 0.28s var(--ease); }
+
+.drawer-fade-enter-from,
+.drawer-fade-leave-to { opacity: 0; }
+.drawer-fade-enter-active,
+.drawer-fade-leave-active { transition: opacity 0.28s var(--ease); }
+
+@media (prefers-reduced-motion: reduce) {
+  .drawer-slide-enter-active,
+  .drawer-slide-leave-active,
+  .drawer-fade-enter-active,
+  .drawer-fade-leave-active { transition: none; }
+}
+
+/* ---------- 2) FLOATING MESSAGE LAUNCHER ---------------------------- */
+/* Sits directly above the chatbot FAB (chatbot: bottom 20px, 60px tall). */
+.msg-launcher {
+  position: fixed;
+  right: 20px;
+  bottom: 94px;
+  z-index: var(--z-fab);
+}
+
+.msg-fab {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  color: var(--green-dark);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease),
+    background 0.15s var(--ease);
+}
+.msg-fab:hover {
+  transform: translateY(-2px) scale(1.03);
+  background: var(--green-soft);
+  box-shadow: var(--shadow-lg);
+}
+.msg-fab:focus-visible {
+  outline: 3px solid rgba(76, 154, 91, 0.45);
+  outline-offset: 2px;
+}
+.msg-fab svg { width: 26px; height: 26px; }
+
+.msg-fab-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #c0392b;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fff;
+}
+
+/* ---------- 3) NAVBAR POLISH --------------------------------------- */
+/* Highlight the current top-level route in the pill nav */
+
+/* ---------- 4) GLOBAL FORM / CARD / BUTTON POLISH ------------------ */
+.form-control,
+.form-select {
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  padding: 9px 12px;
+  transition: border-color 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--green-light);
+  box-shadow: 0 0 0 3px rgba(76, 154, 91, 0.18);
+}
+.form-label {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--text-dark);
+}
+
+.card {
+  transition: box-shadow 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+.btn-pill:focus-visible,
+.btn-pill-outline:focus-visible,
+.btn-pill-secondary:focus-visible,
+.btn-pill-danger:focus-visible {
+  outline: 3px solid rgba(76, 154, 91, 0.4);
+  outline-offset: 2px;
+}
+
+/* Nicer scrollbars for scrollable app panels */
+.app-drawer-body::-webkit-scrollbar,
+.ai-messages::-webkit-scrollbar,
+.map-sidebar::-webkit-scrollbar,
+.notif-menu::-webkit-scrollbar { width: 8px; }
+.app-drawer-body::-webkit-scrollbar-thumb,
+.ai-messages::-webkit-scrollbar-thumb,
+.map-sidebar::-webkit-scrollbar-thumb,
+.notif-menu::-webkit-scrollbar-thumb {
+  background: rgba(31, 42, 28, 0.18);
+  border-radius: 999px;
+}
+::selection { background: rgba(76, 154, 91, 0.25); }
+
+/* ---------- 5) RESPONSIVE & OVERFLOW SAFETY ------------------------ */
+html { scroll-behavior: smooth; }
+/* `clip`, not `hidden`: overflow-x:hidden turns <body> into a scroll
+   container, which stops the sticky navbar from sticking. `clip` prevents
+   sideways overflow without creating a scrollport. */
+body { overflow-x: clip; }
+@supports not (overflow: clip) {
+  body { overflow-x: hidden; }
+}
+img, svg, video { max-width: 100%; }
+
+/* Keep floating controls clear of small-screen edges */
+@media (max-width: 480px) {
+  .ai-assistant { right: 14px; bottom: 14px; }
+  .msg-launcher { right: 14px; bottom: 86px; }
+  .ai-fab, .msg-fab { width: 54px; height: 54px; }
+  .msg-launcher { bottom: 80px; }
+}
+
+/* On narrow screens the drawer is the primary navigation, so the horizontal
+   pill nav can retire behind the hamburger without feeling cramped. */
+@media (max-width: 560px) {
+  .navbar-agri { padding: 10px 14px; }
+  .navbar-agri .logo { font-size: 1.15rem; }
+}
+
+/* =====================================================================
+   AGRISPHERE DESIGN SYSTEM — REFINEMENT LAYER
+   Appended last so it harmonizes everything above it. Pages keep using the
+   same class names they always have (.card, .form-control, .btn-pill,
+   .list-group, .badge, .table ...) — restyling those shared primitives here
+   updates every page at once, with no page markup or backend changes.
+   ===================================================================== */
+
+/* ---------- TOKENS ------------------------------------------------- */
+:root {
+  /* Brand ramp */
+  --green-900: #16321a;
+  --green-800: #1d4322;
+  --green-700: #234d20;
+  --green-600: #2f6b3a;
+  --green-500: #4c9a5b;
+  --green-400: #6fb87c;
+  --green-100: #dfeee3;
+  --green-50: #f0f7f2;
+
+  --gold-600: #b8912f;
+  --gold-500: #d9b64c;
+  --gold-100: #faf1d8;
+
+  --danger: #c0392b;
+  --danger-100: #fdecea;
+  --warning: #b8770f;
+  --warning-100: #fdf3e0;
+  --info: #2b6ca3;
+  --info-100: #e8f2fa;
+
+  /* Neutrals */
+  --bg: #f4f6f3;
+  --bg-alt: #eef2ec;
+  --surface: #ffffff;
+  --surface-muted: #f7f9f6;
+  --text-dark: #1a251a;
+  --text-body: #3d473c;
+  --text-muted: #6a756a;
+  --border: rgba(26, 37, 26, 0.09);
+  --border-strong: rgba(26, 37, 26, 0.16);
+
+  /* Type */
+  --font-sans: 'Plus Jakarta Sans', 'Segoe UI', system-ui, -apple-system,
+    'Helvetica Neue', Arial, sans-serif;
+
+  /* Radii */
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+  /* Elevation — soft, green-tinted, consistent across the app */
+  --shadow-xs: 0 1px 2px rgba(26, 46, 24, 0.05);
+  --shadow-sm: 0 2px 6px rgba(26, 46, 24, 0.06);
+  --shadow-md: 0 8px 24px rgba(26, 46, 24, 0.09);
+  --shadow-lg: 0 18px 48px rgba(26, 46, 24, 0.16);
+  --ring: 0 0 0 3px rgba(76, 154, 91, 0.22);
+}
+
+/* ---------- BASE / TYPOGRAPHY -------------------------------------- */
+body {
+  font-family: var(--font-sans);
+  color: var(--text-body);
+  background:
+    radial-gradient(1100px 520px at 8% -8%, #e7f1e6 0%, rgba(231, 241, 230, 0) 60%),
+    radial-gradient(900px 480px at 100% 0%, #f3efdc 0%, rgba(243, 239, 220, 0) 55%),
+    var(--bg);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  color: var(--text-dark);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+h1 { font-size: clamp(1.8rem, 1.3rem + 1.8vw, 2.4rem); font-weight: 800; }
+h2 { font-size: clamp(1.4rem, 1.1rem + 1.1vw, 1.85rem); }
+h3 { font-size: clamp(1.15rem, 1rem + 0.6vw, 1.4rem); }
+h4 { font-size: 1.12rem; }
+h5 { font-size: 1rem; }
+
+/* Page headings get a little breathing room + a brand underline accent, so
+   every page opens the same way without editing each page's markup. Pages
+   consistently render `<div class="... container py-4"><h2>Title</h2>`, so
+   the accent is scoped to a leading h2/h1 inside a page container only —
+   headings inside cards and lists are left alone. */
+.page-content .container > h1:first-child,
+.page-content .container > h2:first-child,
+.page-content > div > h1:first-child,
+/* .page-content > div > h2:first-child, */
+.page-content > main > h1:first-child,
+.page-content > main > h2:first-child {
+  position: relative;
+  padding-bottom: 12px;
+  margin-bottom: 22px;
+}
+.page-content .container > h1:first-child::after,
+.page-content .container > h2:first-child::after,
+.page-content > div > h1:first-child::after,
+.page-content > div > h2:first-child::after,
+.page-content > main > h1:first-child::after,
+.page-content > main > h2:first-child::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 46px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--green-500), var(--gold-500));
+}
+/* Centered headings shouldn't get a left-anchored underline. */
+.page-content h1.text-center::after,
+.page-content h2.text-center::after { display: none; }
+
+/* One consistent page width + gutter everywhere. */
+.page-content .container { max-width: 1180px; }
+
+.text-muted { color: var(--text-muted) !important; }
+.small { font-size: 0.86rem; }
+.fw-bold { font-weight: 700 !important; }
+
+a { color: var(--green-600); text-decoration-color: rgba(47, 107, 58, 0.35); }
+a:hover { color: var(--green-700); }
+
+hr { border-color: var(--border); opacity: 1; }
+
+/* Roomier page rhythm so content never hugs the navbar/footer. */
+.page-content { padding-bottom: 28px; }
+.page-content > div { padding-top: 4px; }
+
+/* ---------- CARDS ---------------------------------------------------- */
+.card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.22s var(--ease), transform 0.22s var(--ease),
+    border-color 0.22s var(--ease);
+}
+.card:hover { box-shadow: var(--shadow-md); }
+/* Bootstrap's .shadow-sm is used alongside .card on many pages — keep it
+   consistent with our elevation scale instead of Bootstrap's grey shadow. */
+.card.shadow-sm { box-shadow: var(--shadow-sm) !important; }
+.card.shadow-sm:hover { box-shadow: var(--shadow-md) !important; }
+
+.card-body { padding: 20px; }
+.card-header {
+  background: var(--surface-muted);
+  border-bottom: 1px solid var(--border);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
+  font-weight: 700;
+  color: var(--text-dark);
+  padding: 14px 20px;
+}
+.card-footer {
+  background: var(--surface-muted);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
+  padding: 14px 20px;
+}
+.card-title { color: var(--text-dark); font-weight: 700; }
+
+/* Bootstrap greys used across pages, re-tinted to the brand neutral. */
+.bg-light { background: var(--surface-muted) !important; }
+.border { border-color: var(--border) !important; }
+.rounded { border-radius: var(--radius-sm) !important; }
+
+/* ---------- BUTTONS -------------------------------------------------- */
+.btn-pill,
+.btn-pill-outline,
+.btn-pill-secondary,
+.btn-pill-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 9px 20px;
+  font-weight: 600;
+  font-size: 0.94rem;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  transition: transform 0.18s var(--ease), box-shadow 0.18s var(--ease),
+    background 0.18s var(--ease), border-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+
+.btn-pill {
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  color: #fff;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 12px rgba(35, 77, 32, 0.22);
+}
+.btn-pill:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(35, 77, 32, 0.30);
+  color: #fff;
+}
+.btn-pill:active { transform: translateY(0); }
+
+.btn-pill-outline {
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  color: var(--green-700);
+  box-shadow: var(--shadow-xs);
+}
+.btn-pill-outline:hover {
+  background: var(--green-50);
+  border-color: var(--green-500);
+  color: var(--green-700);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-pill-secondary {
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-xs);
+}
+.btn-pill-secondary:hover {
+  background: var(--bg-alt);
+  border-color: var(--border-strong);
+  color: var(--text-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-pill-danger {
+  background: var(--surface);
+  border: 1.5px solid rgba(192, 57, 43, 0.5);
+  color: var(--danger);
+  box-shadow: var(--shadow-xs);
+}
+.btn-pill-danger:hover {
+  background: var(--danger-100);
+  border-color: var(--danger);
+  color: #a93226;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-pill-sm { padding: 6px 14px; font-size: 0.84rem; }
+
+.btn-pill:disabled,
+.btn-pill-outline:disabled,
+.btn-pill-secondary:disabled,
+.btn-pill-danger:disabled,
+.btn-pill[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Bootstrap .btn fallbacks (a few pages still use raw .btn-*). */
+.btn { border-radius: 999px; font-weight: 600; transition: all 0.18s var(--ease); }
+.btn-primary,
+.btn-success {
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  border-color: transparent;
+}
+.btn-primary:hover,
+.btn-success:hover {
+  background: linear-gradient(135deg, var(--green-500), var(--green-800));
+  border-color: transparent;
+}
+.btn-outline-primary,
+.btn-outline-success { color: var(--green-700); border-color: var(--green-500); }
+.btn-outline-primary:hover,
+.btn-outline-success:hover { background: var(--green-600); border-color: var(--green-600); }
+
+:focus-visible { outline: 3px solid rgba(76, 154, 91, 0.45); outline-offset: 2px; }
+
+/* ---------- FORMS ---------------------------------------------------- */
+.form-label {
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.form-control,
+.form-select {
+  font-family: var(--font-sans);
+  font-size: 0.94rem;
+  color: var(--text-dark);
+  background: var(--surface);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 10px 13px;
+  box-shadow: none;
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease),
+    background 0.18s var(--ease);
+}
+.form-control::placeholder { color: #9aa39a; }
+.form-control:hover,
+.form-select:hover { border-color: rgba(76, 154, 91, 0.5); }
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--green-500);
+  box-shadow: var(--ring);
+  background: var(--surface);
+}
+.form-control:disabled,
+.form-select:disabled { background: var(--surface-muted); opacity: 0.8; }
+textarea.form-control { min-height: 96px; line-height: 1.6; }
+
+.form-check-input { border-color: var(--border-strong); }
+.form-check-input:checked {
+  background-color: var(--green-600);
+  border-color: var(--green-600);
+}
+.form-check-input:focus { box-shadow: var(--ring); border-color: var(--green-500); }
+.form-check-label { color: var(--text-body); }
+
+.input-group-text {
+  background: var(--surface-muted);
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+}
+
+/* Native file inputs appear on the profile/disease upload screens. */
+.form-control[type='file'] { padding: 8px 12px; }
+.form-control[type='file']::file-selector-button {
+  border: none;
+  background: var(--green-100);
+  color: var(--green-700);
+  font-weight: 600;
+  border-radius: 999px;
+  padding: 6px 14px;
+  margin-right: 12px;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+}
+.form-control[type='file']::file-selector-button:hover { background: var(--green-400); color: #fff; }
+
+/* ---------- LISTS / TABLES / BADGES ---------------------------------- */
+.list-group { border-radius: var(--radius-md); overflow: hidden; }
+.list-group-item {
+  border-color: var(--border);
+  padding: 14px 16px;
+  color: var(--text-body);
+  background: var(--surface);
+  transition: background 0.15s var(--ease);
+}
+.list-group-item:hover { background: var(--surface-muted); }
+.list-group-item-action:active,
+.list-group-item.active {
+  background: var(--green-50);
+  border-color: var(--green-100);
+  color: var(--green-800);
+}
+
+.table { color: var(--text-body); border-color: var(--border); margin-bottom: 0; }
+.table > thead {
+  background: var(--surface-muted);
+}
+.table > thead th {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-strong);
+  padding: 12px 14px;
+  white-space: nowrap;
+}
+.table > tbody td { padding: 12px 14px; vertical-align: middle; border-color: var(--border); }
+.table > tbody tr:hover { background: var(--surface-muted); }
+.table-responsive { border-radius: var(--radius-md); }
+
+.badge {
+  font-weight: 600;
+  font-size: 0.74rem;
+  letter-spacing: 0.02em;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+.bg-success, .badge.bg-success { background: var(--green-600) !important; }
+.bg-secondary, .badge.bg-secondary { background: #7d867c !important; }
+.bg-warning, .badge.bg-warning { background: var(--gold-500) !important; color: #4a3a0d !important; }
+.bg-danger, .badge.bg-danger { background: var(--danger) !important; }
+.bg-info, .badge.bg-info { background: var(--info) !important; color: #fff !important; }
+.text-success { color: var(--green-600) !important; }
+
+/* ---------- ALERTS / STATES ------------------------------------------ */
+.app-alert,
+.alert {
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 13px 16px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.app-alert-success,
+.alert-success {
+  background: var(--green-50);
+  border-color: var(--green-100);
+  color: var(--green-800);
+}
+.app-alert-danger,
+.alert-danger {
+  background: var(--danger-100);
+  border-color: rgba(192, 57, 43, 0.22);
+  color: #96271b;
+}
+.alert-warning {
+  background: var(--warning-100);
+  border-color: rgba(184, 119, 15, 0.25);
+  color: #8a5a0b;
+}
+.alert-info {
+  background: var(--info-100);
+  border-color: rgba(43, 108, 163, 0.22);
+  color: #1f5480;
+}
+.error-text { color: var(--danger); font-size: 0.86rem; }
+
+.empty-state,
+.loading-state {
+  padding: 3rem 1.25rem;
+  text-align: center;
+  color: var(--text-muted);
+  opacity: 1;
+  background: var(--surface);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+.loading-state { border-style: solid; }
+/* Subtle pulse so loading reads as "working", not "broken". */
+.loading-state::before {
+  content: '';
+  display: block;
+  width: 30px;
+  height: 30px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  border: 3px solid var(--green-100);
+  border-top-color: var(--green-600);
+  animation: agri-spin 0.8s linear infinite;
+}
+@keyframes agri-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .loading-state::before { animation-duration: 2.4s; }
+}
+
+/* ---------- MODALS / OVERLAYS ---------------------------------------- */
+.modal-content {
+  border: none;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+}
+.modal-header, .modal-footer { border-color: var(--border); padding: 16px 20px; }
+.modal-body { padding: 20px; }
+.modal-backdrop.show { opacity: 0.5; }
+
+/* Page-level custom modals (seasonal performance, messages picker, etc.) */
+.seasonal-performance-modal,
+.msg-modal {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  background: var(--surface);
+}
+
+/* ---------- NAVBAR (refinement) -------------------------------------- */
+.navbar-agri {
+  background: rgba(255, 255, 255, 0.86);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  padding: 10px 16px;
+  gap: 12px;
+}
+.navbar-agri .logo { letter-spacing: -0.02em; }
+.navbar-agri .logo .sphere { color: var(--green-600); }
+
+/* Compact, quiet pills in the navbar so the bar reads as one unit. */
+.nav-links > .btn-pill-outline.router-link-active,
+.navbar-agri .nav-links > .btn-pill-outline.router-link-active {
+  background: var(--green-50);
+  color: var(--green-700);
+  border-color: var(--green-100);
+}
+.navbar-agri .nav-links { gap: 4px; }
+
+.drawer-menu-btn {
+  border-radius: 12px;
+  border-color: var(--border);
+  box-shadow: var(--shadow-xs);
+}
+
+.nav-dropdown-menu {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+}
+.nav-dropdown-menu a {
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 9px 12px;
+  border-radius: var(--radius-xs);
+  color: var(--text-body);
+}
+.nav-dropdown-menu a:hover { background: var(--green-50); color: var(--green-700); }
+.nav-dropdown-menu a.router-link-active {
+  background: var(--green-50);
+  color: var(--green-700);
+  font-weight: 600;
+}
+.notif-badge {
+  background: var(--danger);
+  font-size: 0.7rem;
+  padding: 1px 6px;
+}
+.navbar-toggle {
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-xs);
+}
+
+/* ---------- DRAWER (refinement — structure preserved) ---------------- */
+.app-drawer {
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+.app-drawer-header {
+  background:
+    radial-gradient(120% 120% at 0% 0%, var(--green-500) 0%, var(--green-700) 55%, var(--green-800) 100%);
+  padding: 24px 20px 22px;
+}
+.drawer-avatar {
+  width: 68px;
+  height: 68px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+}
+.drawer-user-name { font-size: 1.12rem; letter-spacing: -0.01em; }
+.drawer-section-title {
+  font-size: 0.68rem;
+  letter-spacing: 0.09em;
+  color: var(--text-muted);
+  padding: 16px 12px 6px;
+}
+.drawer-link { font-size: 0.9rem; }
+.drawer-link:hover { background: var(--green-50); }
+.drawer-link.router-link-active {
+  background: var(--green-50);
+  border-color: var(--green-100);
+}
+/* Active item gets a brand rail on the left edge. */
+.drawer-link.router-link-active {
+  position: relative;
+  box-shadow: inset 3px 0 0 var(--green-600);
+}
+.app-drawer-body { padding: 8px 10px 20px; }
+
+/* ---------- HERO / HOME ---------------------------------------------- */
+.hero {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  margin: 0 16px 8px;
+  padding: clamp(48px, 7vw, 84px) clamp(20px, 5vw, 56px);
+  text-align: left;
+  color: #f2f7ef;
+  background:
+    radial-gradient(900px 420px at 88% 8%, rgba(217, 182, 76, 0.34) 0%, rgba(217, 182, 76, 0) 62%),
+    linear-gradient(135deg, var(--green-800) 0%, var(--green-600) 52%, var(--green-500) 100%);
+  box-shadow: var(--shadow-md);
+}
+/* Soft organic accent instead of a flat block of color. */
+.hero::after {
+  content: '';
+  position: absolute;
+  right: -90px;
+  bottom: -120px;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+.hero h1 {
+  color: #ffffff;
+  font-size: clamp(2rem, 1.3rem + 2.6vw, 3.1rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  max-width: 16ch;
+}
+.hero p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.14rem);
+  max-width: 56ch;
+  margin: 16px 0 30px;
+}
+.hero-actions { justify-content: flex-start; position: relative; z-index: 1; }
+/* On the dark hero the outline button needs a light treatment. */
+.hero .btn-pill-outline {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.55);
+  color: #fff;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.hero .btn-pill-outline:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #fff;
+  color: #fff;
+}
+/* The hero is dark green in BOTH themes, so its CTA stays white on purpose
+   rather than following the surface token. */
+.hero .btn-pill {
+  background: #FFFFFF;
+  color: var(--green-800);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.20);
+}
+.hero .btn-pill:hover { background: #FFFFFF; color: var(--green-900); }
+
+.quick-links-section,
+.features-section { padding: 40px 16px 8px; }
+.quick-links-title {
+  text-align: left;
+  color: var(--text-dark);
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.quick-links-section > .quick-links-title + .quick-links-grid,
+.features-section > .quick-links-title + .quick-links-grid { margin-top: 22px; }
+
+.quick-links-grid {
+  grid-template-columns: repeat(auto-fill, minmax(172px, 1fr));
+  gap: 14px;
+}
+.quick-link-card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 22px 16px;
+  gap: 12px;
+  box-shadow: var(--shadow-xs);
+  font-weight: 600;
+  overflow: hidden;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+/* Accent bar reveals on hover — gives the grid life without extra markup. */
+.quick-link-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green-500), var(--gold-500));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s var(--ease);
+}
+a.quick-link-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-100);
+  color: var(--green-800);
+}
+a.quick-link-card:hover::before { transform: scaleX(1); }
+.quick-link-icon {
+  font-size: 1.6rem;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+}
+.quick-link-label { font-size: 0.92rem; line-height: 1.35; color: inherit; }
+.feature-card { cursor: default; }
+
+/* ---------- AUTH CARDS ------------------------------------------------ */
+.auth-card {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-md);
+  background: var(--surface);
+}
+.auth-card h2 { letter-spacing: -0.02em; }
+
+/* ---------- MAP PAGE -------------------------------------------------- */
+.map-sidebar {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 16px;
+}
+.map-filter-panel {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.leaflet-map {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.map-legend, .map-nearby-list, .map-search-results { border-top-color: var(--border); }
+/* Leaflet's own controls, themed to match. */
+.leaflet-control-zoom a {
+  border-radius: 8px !important;
+  color: var(--green-800) !important;
+  border-color: var(--border) !important;
+}
+.leaflet-bar { border-radius: 10px; box-shadow: var(--shadow-sm); border: none; }
+
+/* ---------- CHAT / MESSAGING WIDGETS --------------------------------- */
+/* The two floating controls are one visual family: same size, same radius,
+   stacked in one column at the same right offset. */
+.ai-fab, .msg-fab {
+  width: 58px;
+  height: 58px;
+  box-shadow: var(--shadow-md);
+}
+.ai-fab {
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+.ai-fab:hover, .msg-fab:hover { box-shadow: var(--shadow-lg); }
+.msg-fab {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--green-700);
+}
+.msg-fab:hover { background: var(--green-50); border-color: var(--green-100); }
+/* Keep the message button locked directly above the chatbot button. */
+.msg-launcher { bottom: 90px; right: 20px; }
+
+.ai-panel {
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  bottom: 72px;
+}
+.ai-panel-header {
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  padding: 15px 16px;
+}
+.ai-messages { background: var(--surface-muted); }
+.ai-bubble { font-size: 0.9rem; box-shadow: var(--shadow-xs); }
+.ai-bubble-assistant { border-color: var(--border); }
+.ai-chip {
+  border: 1px solid var(--green-100);
+  background: var(--surface);
+  color: var(--green-700);
+  font-weight: 600;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.ai-chip:hover { background: var(--green-50); border-color: var(--green-500); }
+.ai-input { border-radius: 999px; }
+
+/* ---------- FOOTER ---------------------------------------------------- */
+.app-footer {
+  margin-top: 32px;
+  padding: 0;
+  background: var(--green-900);
+  color: rgba(255, 255, 255, 0.78);
+  border-top: none;
+  text-align: left;
+}
+.footer-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 40px 20px 22px;
+}
+.footer-top {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 28px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+.footer-brand {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.02em;
+  margin-bottom: 10px;
+  display: inline-flex;
+  gap: 6px;
+  text-decoration: none;
+}
+.footer-brand .sphere { color: var(--green-400); }
+.footer-tagline {
+  font-size: 0.9rem;
+  max-width: 42ch;
+  color: rgba(255, 255, 255, 0.68);
+  margin: 0;
+}
+.footer-col-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 12px;
+}
+.footer-links { display: flex; flex-direction: column; gap: 9px; }
+.footer-links a {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
+  font-size: 0.9rem;
+  width: fit-content;
+  transition: color 0.15s var(--ease);
+}
+.footer-links a:hover { color: #fff; }
+.footer-copy {
+  padding-top: 18px;
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.55);
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .footer-top { grid-template-columns: 1fr; gap: 22px; }
+}
+
+/* ---------- RESPONSIVE POLISH ---------------------------------------- */
+@media (max-width: 992px) {
+  .card-body { padding: 16px; }
+  .hero { margin: 0 12px 8px; }
+}
+
+@media (max-width: 576px) {
+  .navbar-agri { margin: 10px; padding: 9px 12px; }
+  .hero { margin: 0 10px 8px; border-radius: var(--radius-lg); text-align: left; }
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .hero-actions > * { width: 100%; }
+  .quick-links-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .quick-link-card { padding: 18px 12px; }
+  .quick-link-icon { width: 46px; height: 46px; font-size: 1.4rem; }
+  .card-body { padding: 14px; }
+  .table > thead th, .table > tbody td { padding: 10px; }
+  /* Keep wide data tables scrollable instead of blowing out the layout. */
+  .table-responsive { -webkit-overflow-scrolling: touch; }
+}
+
+/* Long words / URLs in user-generated content shouldn't force h-scroll. */
+.card, .list-group-item, .ai-bubble, .drawer-link { overflow-wrap: anywhere; }
+
+/* Hero content aligns to the same 1180px column the rest of the app uses. */
+.hero > * {
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* Small eyebrow pill above the hero headline. */
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  margin-bottom: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  width: fit-content;
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+.hero-eyebrow-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green-400);
+  box-shadow: 0 0 0 3px rgba(111, 184, 124, 0.3);
+}
+
+/* =====================================================================
+   FINAL OVERRIDES — must stay last in the file.
+   The refinement layer above re-declares FAB sizing/offsets, so the
+   small-screen rules are restated here to win on cascade order.
+   ===================================================================== */
+@media (max-width: 480px) {
+  .ai-assistant { right: 14px; bottom: 14px; }
+  .ai-fab, .msg-fab { width: 52px; height: 52px; }
+  .ai-fab svg, .msg-fab svg { width: 23px; height: 23px; }
+  /* Chatbot occupies 14px–66px; the message button sits directly above it. */
+  .msg-launcher { right: 14px; bottom: 78px; }
+  .ai-panel { bottom: 66px; }
+  .msg-fab-badge { min-width: 18px; height: 18px; font-size: 0.68rem; }
+}
+
+/* Very short viewports (or heavy browser zoom): the chat panel must never
+   run past the top of the screen or under the floating buttons. */
+@media (max-height: 620px) {
+  .ai-panel { height: auto; max-height: calc(100vh - 100px); }
+}
+
+/* Honour reduced-motion for every transition/animation added above. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .loading-state::before {
+    animation-duration: 1.2s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* Circular icon-only buttons in the navbar (messages, notifications). */
+
+/* Count bubble anchored to the icon button's corner. */
+
+.notif-empty {
+  padding: 14px 12px;
+  margin: 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+.notif-menu a { line-height: 1.4; }
+
+/* ---------- MESSAGING PAGE (token sync) ------------------------------ */
+.msg-shell {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+}
+.msg-list,
+.msg-list-head,
+.msg-chat-head,
+.msg-input-row { border-color: var(--border) !important; }
+.msg-conv-item { border-bottom-color: var(--border); }
+.msg-conv-item:hover { background: var(--surface-muted); }
+.msg-conv-active,
+.msg-conv-item.msg-conv-active { background: var(--green-50); box-shadow: inset 3px 0 0 var(--green-600); }
+.msg-avatar { background: linear-gradient(135deg, var(--green-500), var(--green-700)); }
+.msg-thread { background: var(--surface-muted); }
+.msg-mine .msg-bubble {
+  background: linear-gradient(135deg, var(--green-500), var(--green-600));
+  box-shadow: var(--shadow-xs);
+}
+.msg-theirs .msg-bubble {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-xs);
+}
+.msg-unread { background: var(--green-600); }
+.msg-input {
+  border: 1.5px solid var(--border-strong);
+  font-family: var(--font-sans);
+  transition: border-color 0.18s var(--ease), box-shadow 0.18s var(--ease);
+}
+.msg-input:focus { border-color: var(--green-500); box-shadow: var(--ring); }
+.msg-conv-name { color: var(--text-dark); }
+
+/* Small round icon buttons shared by the chat widget + messages header. */
+.ai-icon-btn {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--green-700);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.ai-icon-btn:hover { background: var(--green-50); border-color: var(--green-100); }
+
+/* ---------- ORGANIZATION SIDEBAR (token sync) ------------------------ */
+.org-sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  padding-top: 110px;
+}
+.org-thumb { border-radius: 10px; border: 1px solid var(--border); }
+.expert-photo-large { box-shadow: var(--shadow-sm); }
+.expert-photo-placeholder {
+  background: var(--surface-muted);
+  border: 1px dashed var(--border-strong);
+  color: var(--text-muted);
+}
+
+/* ---------- MISC SYNC ------------------------------------------------- */
+.disease-tag-dropdown {
+  border-color: var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+}
+.detail-info-label { color: var(--text-muted); font-size: 0.8rem; font-weight: 600; }
+.detail-info-value { color: var(--text-dark); font-weight: 600; }
+
+/* =====================================================================
+   DARK THEME
+   Driven by <html data-theme="dark"> (set by stores/theme.js, which also
+   sets data-bs-theme so Bootstrap's own components follow along).
+   Because the surfaces/borders above are tokenised, remapping the tokens
+   here re-themes the whole app.
+   ===================================================================== */
+[data-theme='dark'] {
+  --green-900: #0d1f10;
+  --green-800: #16321a;
+  --green-700: #34a353;
+  --green-600: #58c274;
+  --green-500: #6ccd85;
+  --green-400: #8ddb9f;
+  --green-100: #24402a;
+  --green-50: #1c3320;
+
+  --gold-600: #e7c665;
+  --gold-500: #d9b64c;
+  --gold-100: #3a3320;
+
+  --danger: #f2776a;
+  --danger-100: #3a201d;
+  --warning: #e0a955;
+  --warning-100: #3a2f1c;
+  --info: #6db2e8;
+  --info-100: #1c2c3a;
+
+  --bg: #10160f;
+  --bg-alt: #161d15;
+  --surface: #1a221a;
+  --surface-muted: #212a20;
+  --text-dark: #eef3ec;
+  --text-body: #c8d2c6;
+  --text-muted: #93a091;
+  --border: rgba(255, 255, 255, 0.10);
+  --border-strong: rgba(255, 255, 255, 0.18);
+
+  /* Legacy aliases from the original stylesheet are still referenced by ~80
+     older rules (headings, links, icon fills). They were authored as *dark*
+     greens for text on white, so on a dark surface they fail contrast —
+     the login heading was nearly invisible. Remap them to the light end of
+     the ramp here; gradients that use them simply read lighter, which suits
+     dark mode. */
+  --green-dark: #6ccd85;
+  --green: #58c274;
+  --green-light: #7ad492;
+  --green-soft: #24402a;
+  --gold: #e7c665;
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 8px 26px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 20px 52px rgba(0, 0, 0, 0.62);
+  --ring: 0 0 0 3px rgba(108, 205, 133, 0.28);
+
+  color-scheme: dark;
+}
+
+[data-theme='dark'] body {
+  background:
+    radial-gradient(1100px 520px at 8% -8%, #17251a 0%, rgba(23, 37, 26, 0) 60%),
+    radial-gradient(900px 480px at 100% 0%, #1d2418 0%, rgba(29, 36, 24, 0) 55%),
+    var(--bg);
+  color: var(--text-body);
+}
+
+/* Navbar glass needs a dark tint instead of a white one. */
+[data-theme='dark'] .navbar-agri {
+  background: rgba(26, 34, 26, 0.82);
+  border-color: var(--border);
+}
+
+/* Elements that are white-on-gradient stay light; these are the few that
+   were explicitly light-surfaced and need re-tinting. */
+[data-theme='dark'] .app-footer { background: #0b120b; }
+[data-theme='dark'] .bg-light { background: var(--surface-muted) !important; }
+[data-theme='dark'] .hero {
+  background:
+    radial-gradient(900px 420px at 88% 8%, rgba(217, 182, 76, 0.20) 0%, rgba(217, 182, 76, 0) 62%),
+    linear-gradient(135deg, #16321a 0%, #23502c 52%, #2d6538 100%);
+}
+[data-theme='dark'] .quick-link-icon {
+  background: var(--green-50);
+  border-color: var(--green-100);
+}
+[data-theme='dark'] .msg-fab { background: var(--surface); color: var(--green-600); }
+[data-theme='dark'] .table > thead { background: var(--surface-muted); }
+[data-theme='dark'] .leaflet-map { filter: brightness(0.86) contrast(1.04); }
+[data-theme='dark'] .leaflet-popup-content-wrapper,
+[data-theme='dark'] .leaflet-popup-tip { background: var(--surface); color: var(--text-body); }
+
+/* Bootstrap utility text colours that assume a light background. */
+[data-theme='dark'] .text-dark { color: var(--text-dark) !important; }
+[data-theme='dark'] .border { border-color: var(--border) !important; }
+
+/* Theme transition — colours ease instead of snapping. */
+body,
+.navbar-agri,
+.card,
+.app-drawer,
+.form-control,
+.form-select {
+  transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease),
+    color 0.25s var(--ease);
+}
+
+/* =====================================================================
+   NAVBAR v2 — structured left brand cluster + right action rail.
+   The rail stays inline on the bar and only collapses behind the toggle
+   when it genuinely cannot fit (narrow viewport OR high browser zoom,
+   which both reduce the CSS-pixel width the media query reads).
+   ===================================================================== */
+.navbar-agri {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+  gap: 16px;
+  flex-wrap: nowrap;
+  margin: 14px 16px;
+  padding: 8px 12px 8px 10px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 10px;
+  z-index: var(--z-navbar);
+}
+@supports not (background: color-mix(in srgb, red 50%, blue)) {
+  .navbar-agri { background: var(--surface); }
+}
+
+.navbar-brand-group { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.navbar-agri .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 800;
+  font-size: 1.16rem;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  color: var(--text-dark);
+}
+.logo-mark {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  font-size: 1.05rem;
+  box-shadow: var(--shadow-xs);
+}
+.navbar-agri .logo .agri { color: var(--text-dark); }
+.navbar-agri .logo .sphere { color: var(--green-600); }
+
+/* --- right side --------------------------------------------------- */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 0;
+}
+.nav-primary {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+.nav-actions { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+.nav-divider {
+  width: 1px;
+  height: 24px;
+  margin: 0 6px;
+  background: var(--border-strong);
+  flex-shrink: 0;
+}
+
+/* Text nav items */
+.nav-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+}
+.nav-item:hover { background: var(--green-50); color: var(--green-700); }
+.nav-item.router-link-active,
+.nav-item-active { background: var(--green-50); color: var(--green-700); }
+.nav-caret { width: 14px; height: 14px; opacity: 0.7; }
+.nav-item-toggle .nav-caret { transition: transform 0.18s var(--ease); }
+.nav-item-active .nav-caret { transform: rotate(180deg); }
+
+/* Ghost icon buttons (drawer trigger, theme, messages, notifications) */
+.nav-ghost-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-body);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+}
+.nav-ghost-btn:hover { background: var(--green-50); color: var(--green-700); }
+.nav-ghost-btn svg { width: 20px; height: 20px; }
+
+.nav-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--danger);
+  color: #fff;
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--surface);
+}
+
+/* Account button with avatar */
+.nav-account-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-dark);
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 190px;
+  transition: background 0.16s var(--ease), border-color 0.16s var(--ease);
+}
+.nav-account-btn:hover { background: var(--green-50); border-color: var(--green-100); }
+.nav-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+.nav-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.nav-account-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Dropdown menus */
+.nav-dropdown { position: relative; display: inline-flex; }
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: auto;
+  min-width: 232px;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-dropdown);
+  transform: none;
+}
+.nav-dropdown-menu-end { left: auto; right: 0; }
+.nav-dropdown-menu a {
+  display: block;
+  padding: 9px 12px;
+  border-radius: 9px;
+  color: var(--text-body);
+  font-size: 0.88rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.14s var(--ease), color 0.14s var(--ease);
+}
+.nav-dropdown-menu a:hover { background: var(--green-50); color: var(--green-700); }
+.nav-dropdown-menu a.router-link-active {
+  background: var(--green-50);
+  color: var(--green-700);
+  font-weight: 600;
+}
+.nav-menu-heading {
+  padding: 8px 12px 6px;
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.nav-menu-user {
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.nav-menu-user-name { font-weight: 700; color: var(--text-dark); font-size: 0.92rem; }
+.nav-menu-user-role { font-size: 0.78rem; color: var(--text-muted); }
+.nav-menu-danger { color: var(--danger) !important; }
+.nav-menu-danger:hover { background: var(--danger-100) !important; color: var(--danger) !important; }
+.notif-menu { max-height: 340px; overflow-y: auto; }
+.notif-unread { font-weight: 700; color: var(--text-dark) !important; }
+
+/* Collapse toggle — hidden until the rail can't fit */
+.navbar-toggle {
+  display: none;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  color: var(--text-dark);
+  cursor: pointer;
+}
+.navbar-toggle svg { width: 20px; height: 20px; }
+.navbar-toggle:hover { background: var(--green-50); color: var(--green-700); }
+
+/* --- collapsed state ------------------------------------------------
+   Below this width the inline rail no longer fits. High browser zoom
+   shrinks the CSS-pixel viewport the same way, so zooming in also lands
+   here and the rail becomes a menu, exactly as intended. */
+@media (max-width: 1180px) {
+  .navbar-agri { flex-wrap: wrap; }
+  .navbar-toggle { display: inline-flex; order: 3; }
+
+  .navbar-right {
+    order: 4;
+    flex-basis: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transition: max-height 0.3s var(--ease), opacity 0.22s var(--ease),
+      margin-top 0.3s var(--ease);
+  }
+  .navbar-right-open {
+    max-height: 78vh;
+    opacity: 1;
+    pointer-events: auto;
+    margin-top: 8px;
+    overflow-y: auto;
+  }
+
+  .nav-primary { flex-direction: column; align-items: stretch; gap: 2px; }
+  .nav-dropdown { display: block; }
+  .nav-item { width: 100%; justify-content: space-between; padding: 11px 12px; }
+
+  /* Menus flow inline in the stack instead of floating over the page. */
+  .nav-dropdown-menu {
+    position: static;
+    min-width: 0;
+    max-width: none;
+    box-shadow: none;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    padding: 2px 0 6px 10px;
+    margin-left: 6px;
+    border-left: 2px solid var(--border);
+  }
+  .nav-dropdown-menu a { padding: 9px 10px; }
+
+  .nav-actions {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 6px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 4px;
+  }
+  .nav-divider { display: none; }
+  .nav-account-btn { max-width: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-right { transition: none; }
+}
+
+@media (max-width: 520px) {
+  .navbar-agri { margin: 10px; padding: 7px 10px 7px 8px; }
+  .navbar-agri .logo { font-size: 1.05rem; }
+  .logo-mark { width: 30px; height: 30px; }
+}
+
+/* ---------- DRAWER v2 additions -------------------------------------- */
+.app-drawer { background: var(--surface); }
+.app-drawer-close svg { width: 17px; height: 17px; }
+.drawer-user-meta {
+  font-size: 0.78rem;
+  opacity: 0.82;
+  margin-top: 3px;
+  word-break: break-all;
+}
+.drawer-hint {
+  margin: 8px 12px 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.drawer-about {
+  margin: 0 12px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Segmented light / dark / system control */
+.theme-segmented {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  margin: 0 10px;
+  padding: 4px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.theme-seg-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 4px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease),
+    box-shadow 0.16s var(--ease);
+}
+.theme-seg-btn:hover { color: var(--text-dark); }
+.theme-seg-active {
+  background: var(--surface);
+  color: var(--green-700);
+  box-shadow: var(--shadow-xs);
+}
+.theme-seg-icon svg { width: 18px; height: 18px; }
+
+/* The drawer body is account-scoped now, so give sections room to breathe. */
+.app-drawer-body .drawer-section + .drawer-section { margin-top: 14px; }
+
+/* =====================================================================
+   LAYOUT FIXES (verified against rendered screenshots)
+   ===================================================================== */
+
+/* The hero headline was rendering centred: `.hero > *` applied auto side
+   margins, and because the h1 is capped at ~16ch its box got centred inside
+   the hero. Pin children to the left instead, and pad the hero so its text
+   column lines up with the 1180px page container used by every section
+   below it. */
+.hero {
+  padding-inline: max(clamp(20px, 5vw, 56px), calc((100vw - 1180px) / 2 - 16px));
+}
+.hero > * {
+  margin-left: 0;
+  margin-right: auto;
+}
+.hero h1,
+.hero p,
+.hero-actions,
+.hero-eyebrow { text-align: left; }
+
+/* Roomier tiles so labels like "Consult Agricultural Experts" don't wrap
+   onto three lines. */
+.quick-links-grid { grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); }
+.quick-link-label { min-height: 2.4em; display: flex; align-items: center; }
+
+/* The floating chat/message buttons sit over the page, so reserve space at
+   the bottom of every page to stop them covering the last row of content. */
+.page-content { padding-bottom: 96px; }
+
+@media (max-width: 576px) {
+  .quick-links-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .hero { padding-inline: 20px; }
+}
+
+/* Footer brand: keep the leaf mark and wordmark tight. */
+.footer-brand { align-items: center; gap: 8px; }
+.footer-brand .logo-mark { width: 30px; height: 30px; font-size: 0.95rem; }
+.footer-brand .agri { color: #fff; }
+
+/* =====================================================================
+   HEADING CONSISTENCY
+   Pages wrap their title in a variety of ad-hoc headers (.page-header,
+   .dashboard-header, .financial-page-header, .weather-header, .page-title,
+   …). Rather than editing 15 page files, the accent + rhythm is applied to
+   every one of those wrappers here so all pages open identically.
+   ===================================================================== */
+.page-content .page-header,
+.page-content .page-title,
+.page-content .dashboard-header,
+.page-content .financial-page-header,
+.page-content .tag-page-header,
+.page-content .seasonal-performance-header,
+.page-content .weather-header,
+.page-content .disease-header {
+  margin-bottom: 26px;
+}
+
+.page-content .page-header > h1:first-child,
+.page-content .page-title > h1:first-child,
+.page-content .dashboard-header > h1:first-child,
+.page-content .financial-page-header > h1:first-child,
+.page-content .tag-page-header > h1:first-child,
+.page-content .seasonal-performance-header > h1:first-child,
+.page-content .weather-header > h1:first-child,
+.page-content .disease-header > h1:first-child {
+  position: relative;
+  padding-bottom: 12px;
+  margin-bottom: 10px;
+}
+.page-content .page-header > h1:first-child::after,
+.page-content .page-title > h1:first-child::after,
+.page-content .dashboard-header > h1:first-child::after,
+.page-content .financial-page-header > h1:first-child::after,
+.page-content .tag-page-header > h1:first-child::after,
+.page-content .seasonal-performance-header > h1:first-child::after,
+.page-content .weather-header > h1:first-child::after,
+.page-content .disease-header > h1:first-child::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 46px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--green-500), var(--gold-500));
+}
+
+/* The sub-line under a page title, wherever it appears. */
+.page-content .page-header > p,
+.page-content .dashboard-header > p,
+.page-content .financial-page-header > p,
+.page-content .tag-page-header > p,
+.page-content .weather-header > p,
+.page-content .disease-header > p {
+  color: var(--text-muted);
+  margin-bottom: 0;
+  max-width: 70ch;
+}
+
+/* Several pages render their title flush against the navbar — give every
+   page the same opening gap. */
+.page-content > div,
+.page-content > main { padding-top: 8px; }
+
+/* =====================================================================
+   v3 UI REFINEMENTS
+   ===================================================================== */
+
+/* ---------- 1) DRAWER SLIDE ANIMATION -------------------------------
+   Root cause of the "abrupt" drawer: a later rule in the theme-transition
+   block re-declared `.app-drawer { transition: background-color … }`, which
+   replaced the transform transition defined by the Vue transition classes
+   (same specificity, later in the file wins). Declaring the transform
+   transition on the element itself — last — makes the slide reliable in
+   both directions regardless of class ordering. */
+.app-drawer {
+  transition:
+    transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
+    background-color 0.25s var(--ease),
+    border-color 0.25s var(--ease),
+    color 0.25s var(--ease);
+  will-change: transform;
+}
+.drawer-slide-enter-from,
+.drawer-slide-leave-to { transform: translateX(-100%); }
+.drawer-slide-enter-to,
+.drawer-slide-leave-from { transform: translateX(0); }
+/* The transition lives on .app-drawer above, so these only need to keep the
+   element alive for the duration — they must not re-declare `transition`. */
+.drawer-slide-enter-active,
+.drawer-slide-leave-active { pointer-events: none; }
+
+.app-drawer-backdrop {
+  transition: opacity 0.3s var(--ease);
+  will-change: opacity;
+}
+.drawer-fade-enter-from,
+.drawer-fade-leave-to { opacity: 0; }
+
+/* The drawer is fixed + translated off-canvas, which can widen the page
+   during the transition; contain it. */
+#app { overflow-x: clip; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-drawer, .app-drawer-backdrop { transition: none; }
+}
+
+/* ---------- 2) CONFIRMATION DIALOG ---------------------------------- */
+.confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-toast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(12, 22, 12, 0.55);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.confirm-dialog {
+  width: 100%;
+  max-width: 420px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  padding: 26px 24px 22px;
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+  outline: none;
+}
+
+.confirm-icon {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.confirm-icon svg { width: 26px; height: 26px; }
+.confirm-icon-danger { background: var(--danger-100); color: var(--danger); }
+.confirm-icon-default { background: var(--green-50); color: var(--green-700); }
+
+.confirm-title {
+  margin: 0 0 8px;
+  font-size: 1.16rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+.confirm-message {
+  margin: 0 0 22px;
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.confirm-btn { min-width: 120px; flex: 1 1 0; }
+
+/* Destructive action: clearly destructive without shouting. */
+.confirm-btn-danger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 9px 20px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.94rem;
+  color: #fff;
+  background: linear-gradient(135deg, #d9534f, var(--danger));
+  box-shadow: 0 4px 12px rgba(192, 57, 43, 0.28);
+  cursor: pointer;
+  transition: transform 0.16s var(--ease), box-shadow 0.16s var(--ease),
+    filter 0.16s var(--ease);
+}
+.confirm-btn-danger:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+  box-shadow: 0 8px 18px rgba(192, 57, 43, 0.34);
+}
+.confirm-btn-danger:focus-visible {
+  outline: 3px solid rgba(192, 57, 43, 0.45);
+  outline-offset: 2px;
+}
+[data-theme='dark'] .confirm-btn-danger {
+  background: linear-gradient(135deg, #e35d4f, #c0392b);
+  color: #fff;
+}
+
+.confirm-fade-enter-from,
+.confirm-fade-leave-to { opacity: 0; }
+.confirm-fade-enter-active,
+.confirm-fade-leave-active { transition: opacity 0.18s var(--ease); }
+.confirm-fade-enter-from .confirm-dialog,
+.confirm-fade-leave-to .confirm-dialog { transform: scale(0.96); }
+.confirm-dialog { transition: transform 0.18s var(--ease); }
+
+@media (max-width: 480px) {
+  .confirm-dialog { padding: 22px 18px 18px; }
+  .confirm-actions { flex-direction: column-reverse; }
+  .confirm-btn { width: 100%; }
+}
+
+/* ---------- 3) HOME — FOUR CORE FEATURES ---------------------------- */
+.core-features-section { padding: 40px 16px 8px; }
+.core-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+.core-feature-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-xs);
+  color: var(--text-dark);
+  text-decoration: none;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease),
+    border-color 0.2s var(--ease);
+}
+.core-feature-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--green-100);
+  color: var(--text-dark);
+}
+.core-feature-icon {
+  width: 54px;
+  height: 54px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  border-radius: 16px;
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+}
+.core-feature-body { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.core-feature-title { font-weight: 700; font-size: 1rem; line-height: 1.3; }
+.core-feature-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.core-feature-arrow {
+  width: 20px;
+  height: 20px;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--green-600);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+}
+.core-feature-card:hover .core-feature-arrow { opacity: 1; transform: translateX(0); }
+
+@media (max-width: 480px) {
+  .core-feature-card { padding: 16px; gap: 12px; }
+  .core-feature-icon { width: 46px; height: 46px; font-size: 1.35rem; }
+  .core-feature-arrow { display: none; }
+}
+
+/* ---------- 4) EXPERT / ORGANIZATION PHOTO CARDS -------------------- */
+/* Detail-page photo: fixed aspect ratio so portrait/landscape uploads all
+   render at a consistent size without stretching or overflowing. */
+.expert-photo-large,
+.org-photo-large {
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  max-height: none;
+  object-fit: cover;
+  object-position: center;
+  border-radius: var(--radius-lg);
+  display: block;
+  margin: 0 auto;
+  background: var(--surface-muted);
+}
+.expert-photo-placeholder {
+  width: 100%;
+  max-width: 240px;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-lg);
+  margin: 0 auto;
+  font-size: 0.88rem;
+}
+
+/* List rows: a consistent, non-distorted thumbnail that never squashes. */
+.org-thumb {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 12px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  margin-right: 0;
+}
+
+/* Rows keep the thumbnail beside its text at every width. The text column
+   is allowed to shrink (min-width:0) so long names wrap inside the row
+   instead of pushing the thumbnail onto its own line or overflowing. */
+.list-group-item.d-flex { flex-wrap: wrap; gap: 12px; }
+.list-group-item.d-flex > div,
+.list-group-item.d-flex > span {
+  flex: 1 1 60%;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .org-thumb { width: 52px; height: 52px; flex-basis: 52px; }
+  .expert-photo-large,
+  .org-photo-large,
+  .expert-photo-placeholder { max-width: 190px; }
+}
+
+/* Detail pages: keep the media column from dominating on tablets. */
+@media (min-width: 768px) {
+  .detail-page-card .col-md-4 { display: flex; align-items: flex-start; justify-content: center; }
+}
+
+/* ---------- 5) DARK MODE CONTRAST SAFETY NET -----------------------
+   Utility classes and native controls that hard-assume a light page.
+   Handled centrally here so individual pages don't need per-file fixes. */
+
+/* Bootstrap utilities that stay light regardless of colour mode. */
+[data-theme='dark'] .bg-white,
+[data-theme='dark'] .bg-body,
+[data-theme='dark'] .table-light,
+[data-theme='dark'] .table-light > th,
+[data-theme='dark'] .table-light > td {
+  background-color: var(--surface-muted) !important;
+  color: var(--text-body) !important;
+}
+[data-theme='dark'] .bg-light { background-color: var(--surface-muted) !important; }
+[data-theme='dark'] .text-dark,
+[data-theme='dark'] .text-black,
+[data-theme='dark'] .text-body { color: var(--text-dark) !important; }
+[data-theme='dark'] .text-muted,
+[data-theme='dark'] .text-secondary { color: var(--text-muted) !important; }
+[data-theme='dark'] .border,
+[data-theme='dark'] .border-top,
+[data-theme='dark'] .border-bottom,
+[data-theme='dark'] .border-start,
+[data-theme='dark'] .border-end { border-color: var(--border) !important; }
+
+/* Form controls: keep fields distinguishable from the page and keep
+   placeholder text readable rather than washed out. */
+[data-theme='dark'] .form-control,
+[data-theme='dark'] .form-select,
+[data-theme='dark'] textarea,
+[data-theme='dark'] input[type='text'],
+[data-theme='dark'] input[type='email'],
+[data-theme='dark'] input[type='password'],
+[data-theme='dark'] input[type='number'],
+[data-theme='dark'] input[type='search'],
+[data-theme='dark'] input[type='date'],
+[data-theme='dark'] select {
+  background-color: var(--surface-muted);
+  border-color: var(--border-strong);
+  color: var(--text-dark);
+}
+[data-theme='dark'] .form-control::placeholder,
+[data-theme='dark'] input::placeholder,
+[data-theme='dark'] textarea::placeholder { color: #8c9a8b; opacity: 1; }
+[data-theme='dark'] .form-control:focus,
+[data-theme='dark'] .form-select:focus {
+  background-color: var(--surface-muted);
+  border-color: var(--green-600);
+  color: var(--text-dark);
+}
+/* Native dropdown options render with the OS palette otherwise. */
+[data-theme='dark'] select option { background-color: #1e271e; color: var(--text-dark); }
+/* Date/number spinners and pickers are invisible on dark otherwise. */
+[data-theme='dark'] input[type='date']::-webkit-calendar-picker-indicator { filter: invert(0.8); }
+
+/* Generic hover/focus states that disappear on dark. */
+[data-theme='dark'] .list-group-item:hover { background: var(--surface-muted); }
+[data-theme='dark'] .table > tbody tr:hover { background: var(--surface-muted); }
+[data-theme='dark'] .card { background-color: var(--surface); }
+
+/* Alert/banner variants used by feature pages. */
+[data-theme='dark'] .alert-box,
+[data-theme='dark'] .alert-success,
+[data-theme='dark'] .app-alert-success { color: #b9e8c6; }
+[data-theme='dark'] .alert-error,
+[data-theme='dark'] .alert-danger,
+[data-theme='dark'] .app-alert-danger { color: #f4b1a8; }
+
+/* Status pills keep their meaning but need readable fills on dark. */
+[data-theme='dark'] .status-success { background: var(--green-50); color: var(--green-600); }
+[data-theme='dark'] .status-neutral { background: var(--surface-muted); color: var(--text-muted); }
+
+/* Empty/loading states sit on the page background. */
+[data-theme='dark'] .empty-state,
+[data-theme='dark'] .loading-state {
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text-muted);
+}
+
+/* Modals and dropdown panels. */
+[data-theme='dark'] .modal-content,
+[data-theme='dark'] .nav-dropdown-menu,
+[data-theme='dark'] .confirm-dialog { background: var(--surface); color: var(--text-body); }
+
+/* ---------- 6) BANNER-STYLE PAGE HEADERS ----------------------------
+   Some feature pages (Crop Recommendation, Weather) use .page-header /
+   .weather-header as a filled brand BANNER rather than a plain title block.
+   The generic "muted sub-line" rule above is meant for titles sitting on the
+   page background, and it was overriding the banner's white text (higher
+   specificity than the component's own scoped rule). Banner paragraphs
+   inherit the banner's foreground colour instead. */
+.page-content .page-header > p.header-subtitle,
+.page-content .weather-header > p,
+.page-content .weather-header > p.subtitle {
+  color: inherit;
+  opacity: 0.92;
 }

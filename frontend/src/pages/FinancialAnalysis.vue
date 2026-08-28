@@ -1,4 +1,3 @@
-```vue
 <template>
   <div class="financial-container">
 
@@ -510,5 +509,5 @@ onMounted(() => {
   loadCrops()
 })
 </script>
-```
+
 

@@ -171,6 +171,7 @@ import {
   getAnalysisHistoryItem,
   deleteAnalysis,
 } from '../services/cropAnalysisService';
+import { confirmDelete } from '../stores/confirm';
 
 // Tiny presentational helper for report rows (skips empty values).
 const ReportRow = (props) => {
@@ -289,7 +290,7 @@ async function loadHistory() {
 async function handleDelete(item) {
   historyError.value = '';
 
-  const confirmed = window.confirm('Delete this detection record? This cannot be undone.');
+  const confirmed = await confirmDelete('Are you sure you want to delete this detection record? This cannot be undone.');
   if (!confirmed) return;
 
   deletingId.value = item._id;

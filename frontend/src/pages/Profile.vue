@@ -215,6 +215,7 @@ import { serverUrl } from '../services/api';
 import { useClickOutside } from '../composables/useClickOutside';
 import StarRating from '../components/StarRating.vue';
 
+import { confirmDelete } from '../stores/confirm';
 const router = useRouter();
 const deleteError = ref('');
 const organizationFieldRef = ref(null);
@@ -328,7 +329,10 @@ async function handlePhotoDelete() {
 async function handleAccountDelete() {
   deleteError.value = '';
 
-  const confirmed = window.confirm('This will permanently delete your account. Are you sure?');
+  const confirmed = await confirmDelete(
+    'This will permanently delete your account and cannot be undone. Are you sure?',
+    { title: 'Delete account', confirmText: 'Delete account' }
+  );
   if (!confirmed) return;
 
   try {

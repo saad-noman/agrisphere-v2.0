@@ -59,14 +59,8 @@
       </div>
 
       <div class="detail-section">
-        <h4>Go to</h4>
-        <div class="d-flex gap-2 flex-wrap">
-          <router-link v-for="link in navLinks" :key="link.to" :to="link.to" class="btn-pill-outline">
-            {{ link.label }}
-          </router-link>
-        </div>
         <div class="d-flex gap-2 flex-wrap mt-2">
-          <router-link to="/profile" class="btn-pill">Edit Profile</router-link>
+          <router-link to="/profile" class="btn-pill edit-profile-btn">Edit Profile</router-link>
           <button type="button" class="btn-pill-danger" @click="handleLogout">Logout</button>
         </div>
       </div>
@@ -140,3 +134,27 @@ function handleLogout() {
   router.push('/');
 }
 </script>
+
+<style scoped>
+/* Same pill shape as the Logout button next to it (border-radius, padding,
+   font come from the global .btn-pill class) — outlined instead of solid
+   filled, matching Logout's treatment, but kept green instead of red.
+   ".auth-card .btn-pill" (theme.css) forces width:100% + margin-top on any
+   .btn-pill inside this page's card, which stretched Edit Profile full-width
+   and dropped it onto its own line above Logout — override that here so it
+   sits inline, same size as Logout, side by side. */
+.detail-section .edit-profile-btn {
+  width: auto;
+  flex: 0 0 auto;
+  margin-top: 0;
+  background: var(--surface);
+  border: 1.5px solid rgba(76, 154, 91, 0.5);
+  color: var(--green-700);
+  box-shadow: var(--shadow-xs);
+}
+.detail-section .edit-profile-btn:hover {
+  background: var(--green-50);
+  border-color: var(--green-500);
+  color: var(--green-700);
+}
+</style>

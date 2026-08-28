@@ -708,12 +708,12 @@ onMounted(() => {
 
 .page-header p {
   margin: 0;
-  color: #707770;
+  color: var(--text-muted);
 }
 
 .refresh-button {
-  border: 1px solid #ccc;
-  background: white;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
   padding: 10px 16px;
   border-radius: 8px;
   cursor: pointer;
@@ -732,8 +732,8 @@ onMounted(() => {
 /* Filters */
 
 .filters-card {
-  background: white;
-  border: 1px solid #eee;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 30px;
@@ -745,7 +745,7 @@ onMounted(() => {
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #707770;
+  color: var(--text-muted);
 }
 
 .filter-buttons {
@@ -755,8 +755,8 @@ onMounted(() => {
 }
 
 .filter-button {
-  border: 1px solid #eee;
-  background: #fff;
+  border: 1px solid var(--border);
+  background: var(--surface);
   border-radius: 8px;
   padding: 9px 14px;
   cursor: pointer;
@@ -768,9 +768,9 @@ onMounted(() => {
 }
 
 .filter-button.active {
-  background: var(--text-dark);
-  color: white;
-  border-color: var(--text-dark);
+  background: var(--brand-fill);
+  color: #ffffff;
+  border-color: var(--brand-fill);
 }
 
 .date-filters {
@@ -782,7 +782,7 @@ onMounted(() => {
 
 .date-filters input {
   height: 38px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--border-strong);
   border-radius: 7px;
   padding: 0 10px;
 }
@@ -792,13 +792,13 @@ onMounted(() => {
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #707770;
+  color: var(--text-muted);
 }
 
 /* Timeline */
 
 .timeline-summary {
-  color: #707770;
+  color: var(--text-muted);
   font-size: 14px;
   margin-bottom: 20px;
 }
@@ -814,7 +814,7 @@ onMounted(() => {
   top: 25px;
   bottom: 25px;
   width: 2px;
-  background: #eee;
+  background: var(--border);
 }
 
 .timeline-item {
@@ -837,14 +837,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: white;
-  border: 2px solid #eee;
+  background: var(--surface);
+  border: 2px solid var(--border);
   font-size: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .marker-disease {
-  border-color: #a93226;
+  border-color: var(--danger);
 }
 
 .marker-recommendation {
@@ -852,18 +852,18 @@ onMounted(() => {
 }
 
 .marker-consultation {
-  border-color: #ddeeff;
+  border-color: var(--info-100);
 }
 
 .marker-farming {
-  border-color: #e8f5e9;
+  border-color: var(--green-50);
 }
 
 /* Activity card */
 
 .activity-card {
-  background: white;
-  border: 1px solid #eee;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -872,7 +872,7 @@ onMounted(() => {
 .activity-date {
   display: flex;
   gap: 8px;
-  color: #999999;
+  color: var(--text-muted);
   font-size: 13px;
   margin-bottom: 10px;
 }
@@ -884,7 +884,7 @@ onMounted(() => {
 }
 
 .activity-type {
-  color: #707770;
+  color: var(--text-muted);
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
@@ -899,7 +899,7 @@ onMounted(() => {
 }
 
 .activity-description {
-  color: #707770;
+  color: var(--text-muted);
   line-height: 1.6;
   margin: 10px 0 16px;
 }
@@ -914,24 +914,24 @@ onMounted(() => {
 }
 
 .status-completed {
-  background: #e8f5e9;
-  color: #28632e;
+  background: var(--green-50);
+  color: var(--green-700);
 }
 
 .status-active {
-  background: #ddeeff;
-  color: #0c4a87;
+  background: var(--info-100);
+  color: var(--info);
 }
 
 .status-pending {
   background: rgba(255,193,7,.12);
-  color: #946c00;
+  color: var(--warning);
 }
 
 .status-cancelled,
 .status-rejected {
-  background: #fdecea;
-  color: #a93226;
+  background: var(--danger-100);
+  color: var(--danger);
 }
 
 /* Crop */
@@ -953,7 +953,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e8f5e9;
+  background: var(--green-50);
 }
 
 .crop-info strong,
@@ -966,7 +966,7 @@ onMounted(() => {
 }
 
 .crop-info span {
-  color: #707770;
+  color: var(--text-muted);
   font-size: 12px;
   margin-top: 2px;
 }
@@ -992,7 +992,7 @@ onMounted(() => {
 
 .detail-label {
   display: block;
-  color: #999999;
+  color: var(--text-muted);
   font-size: 11px;
   text-transform: uppercase;
   font-weight: 700;
@@ -1013,8 +1013,8 @@ onMounted(() => {
 }
 
 .tag {
-  background: #fdecea;
-  color: #a93226;
+  background: var(--danger-100);
+  color: var(--danger);
   border-radius: 999px;
   padding: 4px 9px;
   font-size: 12px;
@@ -1023,7 +1023,7 @@ onMounted(() => {
 
 .condition-tag {
   background: rgba(255,193,7,.12);
-  color: #946c00;
+  color: var(--warning);
 }
 
 /* Match */
@@ -1048,7 +1048,7 @@ onMounted(() => {
 
 .match-bar {
   height: 7px;
-  background: #eee;
+  background: var(--border);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1076,21 +1076,21 @@ onMounted(() => {
   height: 130px;
   object-fit: cover;
   border-radius: 8px;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
 }
 
 /* State */
 
 .state-card {
-  background: white;
-  border: 1px solid #eee;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 50px 20px;
   text-align: center;
 }
 
 .state-card p {
-  color: #707770;
+  color: var(--text-muted);
 }
 
 .state-icon {
@@ -1099,13 +1099,13 @@ onMounted(() => {
 }
 
 .error-state {
-  border-color: #a93226;
+  border-color: var(--danger);
 }
 
 .retry-button {
   border: none;
-  background: var(--text-dark);
-  color: white;
+  background: var(--brand-fill);
+  color: #ffffff;
   padding: 9px 16px;
   border-radius: 7px;
   cursor: pointer;
@@ -1114,7 +1114,7 @@ onMounted(() => {
 .spinner {
   width: 28px;
   height: 28px;
-  border: 3px solid #eee;
+  border: 3px solid var(--border);
   border-top-color: var(--text-dark);
   border-radius: 50%;
   margin: 0 auto 12px;
@@ -1138,8 +1138,8 @@ onMounted(() => {
 }
 
 .pagination button {
-  border: 1px solid #ccc;
-  background: white;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
   border-radius: 7px;
   padding: 8px 14px;
   cursor: pointer;

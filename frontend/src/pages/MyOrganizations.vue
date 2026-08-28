@@ -41,6 +41,7 @@ import { serverUrl } from '../services/api';
 import { getMyOrganizations, deleteOrganization } from '../services/organizationService';
 import OrganizationSidebar from '../components/OrganizationSidebar.vue';
 
+import { confirmDelete } from '../stores/confirm';
 const organizations = ref([]);
 const deleteError = ref('');
 
@@ -52,7 +53,7 @@ onMounted(async () => {
 async function handleDelete(org) {
   deleteError.value = '';
 
-  const confirmed = window.confirm(`Delete "${org.name}"? This cannot be undone.`);
+  const confirmed = await confirmDelete(`Are you sure you want to delete "${org.name}"? This cannot be undone.`);
   if (!confirmed) return;
 
   try {

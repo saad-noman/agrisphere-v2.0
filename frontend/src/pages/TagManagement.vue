@@ -292,6 +292,7 @@
 import { ref, watch, onMounted } from 'vue';
 import { authState } from '../stores/auth';
 
+import { confirmDelete } from '../stores/confirm';
 const API_BASE = 'http://localhost:5000/api';
 
 const catalogType = ref('tags');
@@ -414,7 +415,8 @@ async function submitItem() {
 }
 
 async function deleteItem(id) {
-  if (!confirm('Delete this item?')) {
+  const confirmed = await confirmDelete('Are you sure you want to delete this item?');
+  if (!confirmed) {
     return;
   }
 

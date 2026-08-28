@@ -88,7 +88,7 @@
                 :to="`/experts/${active.otherUser.expertId}`"
                 class="msg-view-profile"
               >
-                View expert profile
+                Expert/Consultant
               </router-link>
               <span v-else class="text-muted small text-capitalize">{{ active.otherUser?.role }}</span>
             </div>

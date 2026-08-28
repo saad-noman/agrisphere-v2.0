@@ -144,6 +144,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
+import { confirmDelete } from '../stores/confirm';
 const props = defineProps({
   cropId: String,
 });
@@ -223,7 +224,7 @@ function editRecord(record) {
 
 async function deleteRecord(id) {
 
-  if (!confirm('Delete record?')) return;
+  if (!(await confirmDelete('Are you sure you want to delete this production record?'))) return;
 
   await axios.delete(
     `${API}/production/${id}`,

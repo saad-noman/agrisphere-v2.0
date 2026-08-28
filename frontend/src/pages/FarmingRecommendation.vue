@@ -323,6 +323,7 @@ import { useRouter, useRoute } from 'vue-router';
 import api from '../services/api';
 import { authState } from '../stores/auth';
 
+import { confirmDelete } from '../stores/confirm';
 const router = useRouter();
 const route = useRoute();
 const viewMode = ref('form'); // 'form', 'list', or 'detail'
@@ -425,7 +426,7 @@ async function submitForm() {
 }
 
 async function deleteRecord(id) {
-  if (!confirm('Are you sure you want to delete this recommendation record?')) return;
+  if (!(await confirmDelete('Are you sure you want to delete this recommendation record?'))) return;
   try {
     await api.delete(`/farming-recommendation/history/${id}`);
     historyList.value = historyList.value.filter(item => item._id !== id);
@@ -434,7 +435,9 @@ async function deleteRecord(id) {
       viewMode.value = 'form';
     }
   } catch (err) {
-    alert('Failed to delete history record: ' + (err.response?.data?.message || err.message));
+    // Surface the failure in the page's existing error banner rather than a
+    // browser-native alert box.
+    error.value = 'Failed to delete history record: ' + (err.response?.data?.message || err.message);
   }
 }
 
@@ -464,7 +467,7 @@ function formatDate(dateStr) {
 /* Header */
 .page-header {
   margin-bottom: 1.5rem;
-  background: linear-gradient(135deg, var(--green-light) 0%, var(--green-dark) 100%);
+  background: var(--brand-banner);
   color: #ffffff;
   padding: 2rem;
   border-radius: 16px;
@@ -500,8 +503,8 @@ function formatDate(dateStr) {
 
 /* Left Sidebar Panel */
 .sidebar-panel {
-  background: #ffffff;
-  border: 1px solid #eee;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.25rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
@@ -517,9 +520,9 @@ function formatDate(dateStr) {
   align-items: center;
   justify-content: center;
   padding: 0.85rem 1rem;
-  background: #e8f5e9;
+  background: var(--green-50);
   color: var(--green-dark);
-  border: 2px solid #e8f5e9;
+  border: 2px solid var(--green-50);
   border-radius: 12px;
   font-weight: 700;
   font-size: 0.95rem;
@@ -528,12 +531,12 @@ function formatDate(dateStr) {
 }
 
 .btn-request-new:hover {
-  background: #e8f5e9;
+  background: var(--green-50);
   border-color: var(--green-light);
 }
 
 .btn-request-new.active {
-  background: var(--green-light);
+  background: var(--brand-fill);
   color: #ffffff;
   border-color: var(--green-light);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
@@ -546,9 +549,9 @@ function formatDate(dateStr) {
   justify-content: space-between;
   margin-bottom: 1rem;
   padding: 0.85rem 1rem;
-  background: #e8f5e9;
+  background: var(--green-50);
   color: var(--green-dark);
-  border: 2px solid #e8f5e9;
+  border: 2px solid var(--green-50);
   border-radius: 12px;
   font-weight: 700;
   font-size: 0.95rem;
@@ -558,12 +561,12 @@ function formatDate(dateStr) {
 }
 
 .history-header:hover {
-  background: #e8f5e9;
+  background: var(--green-50);
   border-color: var(--green-light);
 }
 
 .history-header.active {
-  background: var(--green-light);
+  background: var(--brand-fill);
   color: #ffffff;
   border-color: var(--green-light);
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
@@ -607,14 +610,14 @@ function formatDate(dateStr) {
   max-height: 520px;
   overflow-y: auto;
   scrollbar-width: thin;
-  scrollbar-color: #eee transparent;
+  scrollbar-color: var(--border) transparent;
 }
 
 .history-status,
 .history-empty {
   padding: 1.5rem 1rem;
   text-align: center;
-  color: #707770;
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 
@@ -626,7 +629,7 @@ function formatDate(dateStr) {
 
 .history-item {
   background: var(--bg);
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 0.85rem 1rem;
   cursor: pointer;
@@ -635,13 +638,13 @@ function formatDate(dateStr) {
 
 .history-item:hover {
   border-color: var(--green-light);
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .history-item.selected {
   border-color: var(--green-light);
-  background: #e8f5e9;
+  background: var(--green-50);
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
 }
 
@@ -663,7 +666,7 @@ function formatDate(dateStr) {
 .btn-delete-item {
   background: transparent;
   border: none;
-  color: #999999;
+  color: var(--text-muted);
   font-size: 0.85rem;
   cursor: pointer;
   padding: 0.2rem 0.4rem;
@@ -671,28 +674,28 @@ function formatDate(dateStr) {
 }
 
 .btn-delete-item:hover {
-  color: #a93226;
-  background: #fdecea;
+  color: var(--danger);
+  background: var(--danger-100);
 }
 
 .history-metrics-row {
   display: flex;
   gap: 0.6rem;
   font-size: 0.78rem;
-  color: #707770;
+  color: var(--text-muted);
   font-weight: 600;
   margin-bottom: 0.3rem;
 }
 
 .history-date {
   font-size: 0.75rem;
-  color: #999999;
+  color: var(--text-muted);
 }
 
 /* Right Content Panel */
 .content-panel {
-  background: #ffffff;
-  border: 1px solid #eee;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.75rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
@@ -707,7 +710,7 @@ function formatDate(dateStr) {
 
 .card-header p {
   margin: 0 0 1.25rem 0;
-  color: #707770;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
@@ -718,7 +721,7 @@ function formatDate(dateStr) {
 }
 
 .btn-primary {
-  background: var(--green-light);
+  background: var(--brand-fill);
   color: #ffffff;
   border: none;
   border-radius: 8px;
@@ -730,7 +733,7 @@ function formatDate(dateStr) {
 }
 
 .btn-primary:hover {
-  background: var(--green);
+  background: var(--brand-fill-hover);
 }
 
 
@@ -763,13 +766,13 @@ function formatDate(dateStr) {
 
 .label-unit {
   font-size: 0.78rem;
-  color: #999999;
+  color: var(--text-muted);
 }
 
 .input-group input {
   width: 100%;
   padding: 0.65rem 0.85rem;
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   border-radius: 8px;
   font-size: 0.95rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -789,7 +792,7 @@ function formatDate(dateStr) {
 .btn-submit {
   width: 100%;
   padding: 0.9rem 1.5rem;
-  background: linear-gradient(135deg, var(--green-light) 0%, var(--green) 100%);
+  background: var(--brand-banner);
   color: #ffffff;
   border: none;
   border-radius: 10px;
@@ -813,7 +816,7 @@ function formatDate(dateStr) {
 /* Result Card */
 .result-card {
   margin-top: 1.75rem;
-  background: #e8f5e9;
+  background: var(--green-50);
   border: 2px solid var(--green-light);
   border-radius: 14px;
   padding: 1.5rem;
@@ -848,7 +851,7 @@ function formatDate(dateStr) {
 .result-footer {
   margin-top: 1rem;
   padding-top: 0.75rem;
-  border-top: 1px solid #e8f5e9;
+  border-top: 1px solid var(--green-50);
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--green);
@@ -863,9 +866,9 @@ function formatDate(dateStr) {
 }
 
 .alert-error {
-  background: #fdecea;
-  border: 1px solid #a93226;
-  color: #a93226;
+  background: var(--danger-100);
+  border: 1px solid var(--danger);
+  color: var(--danger);
 }
 
 /* History Cards Grid (List Mode on Right Side) */
@@ -883,7 +886,7 @@ function formatDate(dateStr) {
 
 .history-main-card {
   background: var(--bg);
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.25rem;
   cursor: pointer;
@@ -892,7 +895,7 @@ function formatDate(dateStr) {
 
 .history-main-card:hover {
   border-color: var(--green-light);
-  background: #ffffff;
+  background: var(--surface);
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
 
@@ -912,7 +915,7 @@ function formatDate(dateStr) {
 
 .date-tag {
   font-size: 0.78rem;
-  color: #707770;
+  color: var(--text-muted);
 }
 
 .card-metrics-grid {
@@ -921,7 +924,7 @@ function formatDate(dateStr) {
   gap: 0.4rem;
   font-size: 0.82rem;
   color: var(--text-dark);
-  background: #ffffff;
+  background: var(--surface);
   padding: 0.6rem;
   border-radius: 8px;
   border: 1px solid var(--bg);
@@ -930,7 +933,7 @@ function formatDate(dateStr) {
 
 .m-label {
   font-weight: 700;
-  color: #707770;
+  color: var(--text-muted);
 }
 
 .link-text {
@@ -954,7 +957,7 @@ function formatDate(dateStr) {
 
 .btn-back {
   background: var(--bg);
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.5rem 1rem;
   font-size: 0.88rem;
@@ -965,19 +968,19 @@ function formatDate(dateStr) {
 }
 
 .btn-back:hover {
-  background: #eee;
+  background: var(--border);
 }
 
 .detail-timestamp {
   font-size: 0.85rem;
-  color: #707770;
+  color: var(--text-muted);
 }
 
 .detail-hero-card {
   display: flex;
   align-items: center;
-  background: linear-gradient(135deg, #e8f5e9 0%, #e8f5e9 100%);
-  border: 1px solid #e8f5e9;
+  background: linear-gradient(135deg, var(--green-50) 0%, var(--green-50) 100%);
+  border: 1px solid var(--green-50);
   border-radius: 16px;
   padding: 1.5rem;
 }
@@ -1029,7 +1032,7 @@ function formatDate(dateStr) {
 
 .param-card {
   background: var(--bg);
-  border: 1px solid #eee;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.85rem;
   display: flex;
@@ -1039,7 +1042,7 @@ function formatDate(dateStr) {
 
 .param-label {
   font-size: 0.78rem;
-  color: #707770;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -1060,8 +1063,8 @@ function formatDate(dateStr) {
 .btn-danger-outline {
   padding: 0.85rem 1.25rem;
   background: transparent;
-  color: #a93226;
-  border: 1px solid #a93226;
+  color: var(--danger);
+  border: 1px solid var(--danger);
   border-radius: 10px;
   font-weight: 700;
   font-size: 0.9rem;
@@ -1069,14 +1072,14 @@ function formatDate(dateStr) {
 }
 
 .btn-danger-outline:hover {
-  background: #fdecea;
+  background: var(--danger-100);
 }
 
 .auth-required-box {
   text-align: center;
   padding: 3rem 1.5rem;
   background: var(--bg);
-  border: 2px dashed #eee;
+  border: 2px dashed var(--border);
   border-radius: 14px;
 }
 
@@ -1088,13 +1091,13 @@ function formatDate(dateStr) {
 
 .auth-required-box p {
   margin: 0 0 1.5rem 0;
-  color: #707770;
+  color: var(--text-muted);
   font-size: 0.95rem;
 }
 
 .btn-primary-link {
   display: inline-block;
-  background: var(--green-light);
+  background: var(--brand-fill);
   color: #ffffff;
   padding: 0.75rem 1.5rem;
   border-radius: 10px;
@@ -1104,13 +1107,13 @@ function formatDate(dateStr) {
 }
 
 .btn-primary-link:hover {
-  background: var(--green);
+  background: var(--brand-fill-hover);
 }
 
 /* Weather Loaded Banner */
 .weather-loaded-banner {
-  background: #e8f5e9;
-  border: 1px solid #e8f5e9;
+  background: var(--green-50);
+  border: 1px solid var(--green-50);
   border-left: 4px solid var(--green-light);
   border-radius: 12px;
   padding: 1rem 1.25rem;

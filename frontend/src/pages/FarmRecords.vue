@@ -166,6 +166,7 @@
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
+import { confirmDelete } from '../stores/confirm';
 const API = 'http://localhost:5000/api';
 
 const token = localStorage.getItem('token');
@@ -220,7 +221,7 @@ async function createCrop() {
 }
 
 async function deleteCrop(id) {
-  if (!confirm('Delete this crop?')) return;
+  if (!(await confirmDelete('Are you sure you want to delete this crop?'))) return;
 
   await axios.delete(
     `${API}/crops/${id}`,

@@ -560,7 +560,7 @@ function formatDateShort(dateStr) {
 
 /* Header matching Farming Recommendation Page */
 .weather-header {
-  background: linear-gradient(135deg, var(--green-light) 0%, var(--green-dark) 100%);
+  background: var(--brand-banner);
   color: #ffffff;
   padding: 2rem;
   border-radius: 16px;
@@ -605,7 +605,7 @@ function formatDateShort(dateStr) {
 }
 
 .btn-location {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text-dark);
   border: none;
   padding: 0.75rem 1.25rem;
@@ -618,7 +618,7 @@ function formatDateShort(dateStr) {
 }
 
 .btn-location:hover {
-  background: #e8f5e9;
+  background: var(--green-50);
   transform: translateY(-1px);
 }
 
@@ -646,7 +646,7 @@ function formatDateShort(dateStr) {
 }
 
 .btn-search {
-  background: var(--green-dark);
+  background: var(--brand-fill);
   color: #ffffff;
   border: none;
   padding: 0.75rem 1.25rem;
@@ -658,12 +658,12 @@ function formatDateShort(dateStr) {
 }
 
 .btn-search:hover:not(:disabled) {
-  background: var(--green-dark);
+  background: var(--brand-fill);
 }
 
 /* Search Dropdown */
 .search-results-dropdown {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text-dark);
   border-radius: 12px;
   margin-top: 0.5rem;
@@ -684,7 +684,7 @@ function formatDateShort(dateStr) {
 }
 
 .search-result-item:hover {
-  background: #e8f5e9;
+  background: var(--green-50);
 }
 
 .city-subtext {
@@ -694,9 +694,9 @@ function formatDateShort(dateStr) {
 
 /* Banners */
 .error-banner {
-  background: #fdecea;
+  background: var(--danger-100);
   color: var(--text-dark);
-  border: 1px solid #a93226;
+  border: 1px solid var(--danger);
   padding: 1rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
@@ -707,8 +707,8 @@ function formatDateShort(dateStr) {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #e8f5e9;
-  border: 1px solid #e8f5e9;
+  background: var(--green-50);
+  border: 1px solid var(--green-50);
   padding: 0.75rem 1.25rem;
   border-radius: 12px;
   margin-bottom: 1.5rem;
@@ -741,8 +741,8 @@ function formatDateShort(dateStr) {
 
 /* Left Card: Current Weather */
 .current-weather-card {
-  background: #ffffff;
-  border: 1px solid #e8f5e9;
+  background: var(--surface);
+  border: 1px solid var(--green-50);
   border-radius: 16px;
   padding: 1.25rem;
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.05);
@@ -770,13 +770,13 @@ function formatDateShort(dateStr) {
 }
 
 .live-pill {
-  background: #e8f5e9;
+  background: var(--green-50);
   color: var(--text-dark);
   font-size: 0.7rem;
   font-weight: 800;
   padding: 0.2rem 0.6rem;
   border-radius: 12px;
-  border: 1px solid #e8f5e9;
+  border: 1px solid var(--green-50);
   white-space: nowrap;
 }
 
@@ -816,7 +816,7 @@ function formatDateShort(dateStr) {
 .condition-badge {
   display: inline-block;
   max-width: 100%;
-  background: #e8f5e9;
+  background: var(--green-50);
   color: var(--text-dark);
   font-weight: 800;
   padding: 0.4rem 0.9rem;
@@ -846,7 +846,7 @@ function formatDateShort(dateStr) {
 }
 
 .metric-card {
-  background: #e8f5e9;
+  background: var(--green-50);
   border: 1px solid var(--green-dark);
   border-radius: 12px;
   padding: 0.75rem 0.5rem;
@@ -893,7 +893,7 @@ function formatDateShort(dateStr) {
 }
 
 .wind-info-pill {
-  background: #e8f5e9;
+  background: var(--green-50);
   border: 1px solid var(--text-dark);
   border-radius: 10px;
   padding: 0.5rem 0.75rem;
@@ -910,7 +910,7 @@ function formatDateShort(dateStr) {
 }
 
 .farming-tip-card {
-  background: #e8f5e9;
+  background: var(--green-50);
   border: 1px solid var(--text-dark);
   border-radius: 12px;
   padding: 1rem;
@@ -936,8 +936,8 @@ function formatDateShort(dateStr) {
 
 /* Right Column: Forecast Section */
 .forecast-section {
-  background: #ffffff;
-  border: 1px solid #e8f5e9;
+  background: var(--surface);
+  border: 1px solid var(--green-50);
   border-radius: 16px;
   padding: 1.5rem;
   box-shadow: 0 4px 15px rgba(16, 185, 129, 0.05);
@@ -966,7 +966,7 @@ function formatDateShort(dateStr) {
 .tab-buttons {
   display: flex;
   gap: 0.4rem;
-  background: #e8f5e9;
+  background: var(--green-50);
   padding: 0.25rem;
   border-radius: 10px;
 }
@@ -985,7 +985,7 @@ function formatDateShort(dateStr) {
 }
 
 .tab-btn.active {
-  background: var(--green-light);
+  background: var(--brand-fill);
   color: #ffffff;
   box-shadow: 0 2px 5px rgba(16, 185, 129, 0.2);
 }
@@ -1001,7 +1001,7 @@ function formatDateShort(dateStr) {
   display: grid;
   grid-template-columns: 110px 1fr 130px 100px;
   align-items: center;
-  background: #e8f5e9;
+  background: var(--green-50);
   border: 1px solid var(--green-dark);
   padding: 0.85rem 1rem;
   border-radius: 12px;
@@ -1066,7 +1066,7 @@ function formatDateShort(dateStr) {
 
 .rain-badge {
   display: inline-block;
-  background: #e8f5e9;
+  background: var(--green-50);
   color: var(--text-dark);
   font-size: 0.78rem;
   font-weight: 800;
@@ -1117,7 +1117,7 @@ function formatDateShort(dateStr) {
 }
 
 .table-column {
-  background: #e8f5e9;
+  background: var(--green-50);
   border: 1px solid var(--green-dark);
   border-radius: 12px;
   padding: 0.85rem;
@@ -1150,7 +1150,7 @@ function formatDateShort(dateStr) {
 }
 
 .weather-table th {
-  background: #e8f5e9;
+  background: var(--green-50);
   color: var(--text-dark);
   font-weight: 900;
   text-align: left;
@@ -1168,7 +1168,7 @@ function formatDateShort(dateStr) {
 }
 
 .weather-table tr:hover td {
-  background: #e8f5e9;
+  background: var(--green-50);
 }
 
 .time-cell {
@@ -1218,7 +1218,7 @@ function formatDateShort(dateStr) {
   font-size: 0.72rem;
   font-weight: 800;
   color: var(--text-dark);
-  background: #e8f5e9;
+  background: var(--green-50);
   padding: 0.15rem 0.45rem;
   border-radius: 8px;
   border: 1px solid var(--green-dark);
@@ -1227,14 +1227,14 @@ function formatDateShort(dateStr) {
 
 .table-rain-badge.high-rain {
   color: var(--text-dark);
-  background: #ddeeff;
-  border-color: #ddeeff;
+  background: var(--info-100);
+  border-color: var(--info-100);
 }
 
 /* Predict CTA Box */
 .predict-cta-box {
   margin-top: 1.25rem;
-  background: linear-gradient(135deg, var(--green-light) 0%, var(--green-dark) 100%);
+  background: var(--brand-banner);
   color: var(--text-dark);
   padding: 1.1rem 1.25rem;
   border-radius: 14px;
@@ -1262,7 +1262,7 @@ function formatDateShort(dateStr) {
 }
 
 .btn-predict-cta {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text-dark);
   border: none;
   padding: 0.75rem 1rem;
@@ -1277,7 +1277,7 @@ function formatDateShort(dateStr) {
 }
 
 .btn-predict-cta:hover {
-  background: #e8f5e9;
+  background: var(--green-50);
   transform: translateY(-1px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
@@ -1293,7 +1293,7 @@ function formatDateShort(dateStr) {
 .spinner-large {
   width: 40px;
   height: 40px;
-  border: 4px solid #e8f5e9;
+  border: 4px solid var(--green-50);
   border-top-color: var(--green-light);
   border-radius: 50%;
   animation: spin 1s linear infinite;
