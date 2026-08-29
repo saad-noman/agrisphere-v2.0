@@ -15,7 +15,9 @@
         </svg>
       </button>
       <router-link to="/" class="logo" @click="closeAll">
-        <span class="logo-mark">🌱</span>
+        <span class="logo-mark">
+          <img src="/favicon.png" alt="AgriSphere Logo" />
+        </span>
         <span class="logo-text"><span class="agri">Agri</span><span class="sphere">Sphere</span></span>
       </router-link>
     </div>

@@ -14,24 +14,36 @@ const deleteUploadedFile = (imagePath) => {
 // To list/search organizations, optionally filtered by name, category, district or upazila
 const listOrganizations = async (req, res) => {
   try {
-    const { search, category, district, upazila, sort } = req.query;
+    const search = req.query.search;
+    const category = req.query.category;
+    const district = req.query.district;
+    const upazila = req.query.upazila;
+    const sort = req.query.sort;
+
     const filter = {};
 
     if (search) {
       filter.name = { $regex: search, $options: 'i' };
     }
+
     if (category) {
       filter.category = { $regex: category, $options: 'i' };
     }
+
     if (district) {
       filter.district = { $regex: district, $options: 'i' };
     }
+
     if (upazila) {
       filter.upazila = { $regex: upazila, $options: 'i' };
     }
 
-    const sortOption =
-      sort === 'rating' ? { ratingAverage: -1, ratingCount: -1 } : { name: 1 };
+    // Sort by rating when asked, otherwise alphabetically by name
+    let sortOption = { name: 1 };
+    if (sort === 'rating') {
+      sortOption = { ratingAverage: -1, ratingCount: -1 };
+    }
+
     const organizations = await Organization.find(filter).sort(sortOption);
     res.json(organizations);
   } catch (err) {

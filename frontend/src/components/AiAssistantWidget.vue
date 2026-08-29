@@ -8,7 +8,9 @@
       :aria-label="open ? 'Close assistant' : 'Open agricultural assistant'"
       @click="toggle"
     >
-      <span v-if="!open">🌾</span>
+      <span v-if="!open">
+        <img src="/chat_bot.png" alt="AgriSphere Chat Bot" />
+      </span>
       <span v-else>✕</span>
     </button>
 

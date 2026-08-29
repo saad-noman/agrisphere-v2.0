@@ -3917,7 +3917,7 @@ textarea.form-control { min-height: 96px; line-height: 1.6; }
   color: var(--green-800);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.20);
 }
-.hero .btn-pill:hover { background: #56be71; color: var(--green-900); }
+.hero .btn-pill:hover { background: #FFFFFF; color: var(--green-900); }
 
 .quick-links-section,
 .features-section { padding: 40px 16px 8px; }
@@ -4023,7 +4023,7 @@ a.quick-link-card:hover::before { transform: scaleX(1); }
   box-shadow: var(--shadow-md);
 }
 .ai-fab {
-  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  background: linear-gradient(135deg, var(--green-900), var(--green-700));
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
 .ai-fab:hover, .msg-fab:hover { box-shadow: var(--shadow-lg); }
@@ -4454,7 +4454,7 @@ body,
   align-items: center;
   justify-content: center;
   border-radius: 11px;
-  background: linear-gradient(135deg, var(--green-500), var(--green-700));
+  background: linear-gradient(135deg, var(--green-900), var(--green-700));
   font-size: 1.05rem;
   box-shadow: var(--shadow-xs);
 }

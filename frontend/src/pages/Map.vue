@@ -196,14 +196,33 @@ onMounted(async () => {
 // Centres the map on a deep-linked location (?type=expert|org&id=...).
 // The id is resolved against already-fetched data, never used directly.
 function focusRequestedLocation() {
-  const { type, id } = route.query;
-  if (!type || !id) return;
+  const requestedType = route.query.type;
+  const requestedId = route.query.id;
 
-  const list = type === 'expert' ? allExperts : allOrganizations;
-  const target = list.find((item) => item._id === id);
-  if (!target || target.latitude == null || target.longitude == null) return;
+  if (!requestedType) return;
+  if (!requestedId) return;
 
-  const label = type === 'expert' ? target.fullName : target.name;
+  let listToSearch = allOrganizations;
+  if (requestedType === 'expert') {
+    listToSearch = allExperts;
+  }
+
+  let target = null;
+  for (let i = 0; i < listToSearch.length; i++) {
+    if (listToSearch[i]._id === requestedId) {
+      target = listToSearch[i];
+      break;
+    }
+  }
+
+  if (!target) return;
+  if (target.latitude == null) return;
+  if (target.longitude == null) return;
+
+  let label = target.name;
+  if (requestedType === 'expert') {
+    label = target.fullName;
+  }
   map.setView([target.latitude, target.longitude], 15);
 
   const focusMarker = L.circleMarker([target.latitude, target.longitude], {
@@ -235,14 +254,26 @@ function clearFilters() {
 
 // Straight-line ("as the crow flies") distance in km between two points.
 // Good enough for "nearby" and a simple direction line — no routing API needed.
+function toRadians(degrees) {
+  return (degrees * Math.PI) / 180;
+}
+
 function haversineDistanceKm(lat1, lng1, lat2, lng2) {
-  const toRad = (deg) => (deg * Math.PI) / 180;
   const earthRadiusKm = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLng = toRad(lng2 - lng1);
-  const a =
-    Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
-  return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  const latitudeDifference = toRadians(lat2 - lat1);
+  const longitudeDifference = toRadians(lng2 - lng1);
+
+  const halfLatSinSquared = Math.pow(Math.sin(latitudeDifference / 2), 2);
+  const halfLngSinSquared = Math.pow(Math.sin(longitudeDifference / 2), 2);
+
+  const firstLatCos = Math.cos(toRadians(lat1));
+  const secondLatCos = Math.cos(toRadians(lat2));
+
+  const a = halfLatSinSquared + firstLatCos * secondLatCos * halfLngSinSquared;
+  const centralAngle = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return earthRadiusKm * centralAngle;
 }
 
 // Shows the route from the user's location to the given point, right on our
@@ -263,12 +294,22 @@ async function fetchFastestRoute(from, to) {
     const response = await fetch(url);
     const data = await response.json();
 
-    if (data.code !== 'Ok' || !data.routes?.length) return null;
+    if (data.code !== 'Ok') return null;
+    if (!data.routes) return null;
+    if (data.routes.length === 0) return null;
 
     const route = data.routes[0];
+
+    // GeoJSON coordinates are [lng, lat]; Leaflet wants [lat, lng].
+    const path = [];
+    for (let i = 0; i < route.geometry.coordinates.length; i++) {
+      const longitude = route.geometry.coordinates[i][0];
+      const latitude = route.geometry.coordinates[i][1];
+      path.push([latitude, longitude]);
+    }
+
     return {
-      // GeoJSON coordinates are [lng, lat]; Leaflet wants [lat, lng].
-      path: route.geometry.coordinates.map(([lng, lat]) => [lat, lng]),
+      path,
       distanceKm: route.distance / 1000,
       durationMin: route.duration / 60,
     };
@@ -321,9 +362,21 @@ function matchesFilters(location, nameField) {
   const district = filters.value.district.trim().toLowerCase();
   const upazila = filters.value.upazila.trim().toLowerCase();
 
-  if (search && !location[nameField]?.toLowerCase().includes(search)) return false;
-  if (district && !location.district?.toLowerCase().includes(district)) return false;
-  if (upazila && !location.upazila?.toLowerCase().includes(upazila)) return false;
+  if (search) {
+    const name = location[nameField];
+    if (!name) return false;
+    if (!name.toLowerCase().includes(search)) return false;
+  }
+
+  if (district) {
+    if (!location.district) return false;
+    if (!location.district.toLowerCase().includes(district)) return false;
+  }
+
+  if (upazila) {
+    if (!location.upazila) return false;
+    if (!location.upazila.toLowerCase().includes(upazila)) return false;
+  }
 
   return true;
 }
@@ -334,49 +387,76 @@ function renderMarkers() {
   consultLayer.clearLayers();
 
   if (showExperts.value) {
-    allExperts
-      .filter((expert) => expert.latitude != null && expert.longitude != null)
-      .filter((expert) => matchesFilters(expert, 'fullName'))
-      .forEach((expert) => {
-        const marker = L.circleMarker([expert.latitude, expert.longitude], {
-          radius: 8,
-          color: '#2f6b3a',
-          fillColor: '#2f6b3a',
-          fillOpacity: 0.8,
-        });
-        marker.bindPopup(
-          `<strong>${expert.fullName}</strong><br>` +
-            `${expert.specialization || ''}<br>` +
-            `<a href="/experts/${expert._id}">View Profile</a> | ` +
-            `<a href="#" onclick="window.showMapDirections(${expert.latitude}, ${expert.longitude}); return false;">Directions</a>`
-        );
-        expertLayer.addLayer(marker);
-      });
-  }
+    for (let i = 0; i < allExperts.length; i++) {
+      const expert = allExperts[i];
 
-  allOrganizations
-    .filter((org) => org.latitude != null && org.longitude != null)
-    .filter((org) => matchesFilters(org, 'name'))
-    .forEach((org) => {
-      const isConsultationCenter = org.isConsultationCenter;
-      if (isConsultationCenter && !showConsultationCenters.value) return;
-      if (!isConsultationCenter && !showOrganizations.value) return;
+      if (expert.latitude == null) continue;
+      if (expert.longitude == null) continue;
+      if (!matchesFilters(expert, 'fullName')) continue;
 
-      const color = isConsultationCenter ? '#c0392b' : '#d9b64c';
-      const marker = L.circleMarker([org.latitude, org.longitude], {
+      const marker = L.circleMarker([expert.latitude, expert.longitude], {
         radius: 8,
-        color,
-        fillColor: color,
+        color: '#2f6b3a',
+        fillColor: '#2f6b3a',
         fillOpacity: 0.8,
       });
+
+      const specialization = expert.specialization || '';
+      const profileLink = `<a href="/experts/${expert._id}">View Profile</a>`;
+      const directionsLink =
+        `<a href="#" onclick="window.showMapDirections(${expert.latitude}, ${expert.longitude}); return false;">Directions</a>`;
+
       marker.bindPopup(
-        `<strong>${org.name}</strong><br>` +
-          `${org.category || ''}<br>` +
-          `<a href="/organizations/${org._id}">View Details</a> | ` +
-          `<a href="#" onclick="window.showMapDirections(${org.latitude}, ${org.longitude}); return false;">Directions</a>`
+        `<strong>${expert.fullName}</strong><br>` +
+          `${specialization}<br>` +
+          `${profileLink} | ${directionsLink}`
       );
-      (isConsultationCenter ? consultLayer : orgLayer).addLayer(marker);
+
+      expertLayer.addLayer(marker);
+    }
+  }
+
+  for (let i = 0; i < allOrganizations.length; i++) {
+    const org = allOrganizations[i];
+
+    if (org.latitude == null) continue;
+    if (org.longitude == null) continue;
+    if (!matchesFilters(org, 'name')) continue;
+
+    const isConsultationCenter = org.isConsultationCenter;
+
+    if (isConsultationCenter && !showConsultationCenters.value) continue;
+    if (!isConsultationCenter && !showOrganizations.value) continue;
+
+    let color = '#d9b64c';
+    if (isConsultationCenter) {
+      color = '#c0392b';
+    }
+
+    const marker = L.circleMarker([org.latitude, org.longitude], {
+      radius: 8,
+      color,
+      fillColor: color,
+      fillOpacity: 0.8,
     });
+
+    const category = org.category || '';
+    const detailsLink = `<a href="/organizations/${org._id}">View Details</a>`;
+    const directionsLink =
+      `<a href="#" onclick="window.showMapDirections(${org.latitude}, ${org.longitude}); return false;">Directions</a>`;
+
+    marker.bindPopup(
+      `<strong>${org.name}</strong><br>` +
+        `${category}<br>` +
+        `${detailsLink} | ${directionsLink}`
+    );
+
+    if (isConsultationCenter) {
+      consultLayer.addLayer(marker);
+    } else {
+      orgLayer.addLayer(marker);
+    }
+  }
 }
 
 // Gets the user's location, drops a marker for it, builds the nearby list,
@@ -423,10 +503,21 @@ async function detectRegion(lat, lng) {
     const data = await response.json();
     const address = data.address || {};
 
-    const name = address.suburb || address.neighbourhood || address.city_district || address.town || address.village || '';
-    const broad = address.city || address.county || address.state_district || '';
+    let name = '';
+    if (address.suburb) name = address.suburb;
+    else if (address.neighbourhood) name = address.neighbourhood;
+    else if (address.city_district) name = address.city_district;
+    else if (address.town) name = address.town;
+    else if (address.village) name = address.village;
 
-    return { name: name || broad, broad };
+    let broad = '';
+    if (address.city) broad = address.city;
+    else if (address.county) broad = address.county;
+    else if (address.state_district) broad = address.state_district;
+
+    if (!name) name = broad;
+
+    return { name, broad };
   } catch (err) {
     return { name: '', broad: '' };
   }
@@ -436,14 +527,29 @@ async function detectRegion(lat, lng) {
 function matchesRegion(item, region) {
   const name = region.name.toLowerCase();
   const broad = region.broad.toLowerCase();
-  const upazila = item.upazila?.toLowerCase() || '';
-  const district = item.district?.toLowerCase() || '';
 
-  return (
-    (upazila && (upazila.includes(name) || name.includes(upazila))) ||
-    (district && (district.includes(name) || name.includes(district))) ||
-    (broad && district && (district.includes(broad) || broad.includes(district)))
-  );
+  let upazila = '';
+  if (item.upazila) upazila = item.upazila.toLowerCase();
+
+  let district = '';
+  if (item.district) district = item.district.toLowerCase();
+
+  if (upazila) {
+    if (upazila.includes(name)) return true;
+    if (name.includes(upazila)) return true;
+  }
+
+  if (district) {
+    if (district.includes(name)) return true;
+    if (name.includes(district)) return true;
+  }
+
+  if (broad && district) {
+    if (district.includes(broad)) return true;
+    if (broad.includes(district)) return true;
+  }
+
+  return false;
 }
 
 // Builds the sidebar's "Nearby" list. Tries to match locations in the same
@@ -456,48 +562,79 @@ async function updateNearbyList() {
     return;
   }
 
-  const { lat, lng } = userLocation.value;
-  const region = await detectRegion(lat, lng);
+  const userLat = userLocation.value.lat;
+  const userLng = userLocation.value.lng;
+
+  const region = await detectRegion(userLat, userLng);
   nearbyRegion.value = region.name;
 
   const items = [];
 
-  allExperts
-    .filter((expert) => expert.latitude != null && expert.longitude != null)
-    .forEach((expert) => {
-      items.push({
-        type: 'Expert',
-        name: expert.fullName,
-        lat: expert.latitude,
-        lng: expert.longitude,
-        district: expert.district,
-        upazila: expert.upazila,
-        distanceKm: haversineDistanceKm(lat, lng, expert.latitude, expert.longitude),
-      });
+  for (let i = 0; i < allExperts.length; i++) {
+    const expert = allExperts[i];
+
+    if (expert.latitude == null) continue;
+    if (expert.longitude == null) continue;
+
+    items.push({
+      type: 'Expert',
+      name: expert.fullName,
+      lat: expert.latitude,
+      lng: expert.longitude,
+      district: expert.district,
+      upazila: expert.upazila,
+      distanceKm: haversineDistanceKm(userLat, userLng, expert.latitude, expert.longitude),
     });
-
-  allOrganizations
-    .filter((org) => org.latitude != null && org.longitude != null)
-    .forEach((org) => {
-      items.push({
-        type: org.isConsultationCenter ? 'Consultation Center' : 'Organization',
-        name: org.name,
-        lat: org.latitude,
-        lng: org.longitude,
-        district: org.district,
-        upazila: org.upazila,
-        distanceKm: haversineDistanceKm(lat, lng, org.latitude, org.longitude),
-      });
-    });
-
-  let matches = region.name ? items.filter((item) => matchesRegion(item, region)) : [];
-
-  if (matches.length === 0) {
-    nearbyRegion.value = ''; // nothing matched the detected area — show the radius label instead
-    matches = items.filter((item) => item.distanceKm <= 50);
   }
 
-  nearbyList.value = matches.sort((a, b) => a.distanceKm - b.distanceKm).slice(0, 10);
+  for (let i = 0; i < allOrganizations.length; i++) {
+    const org = allOrganizations[i];
+
+    if (org.latitude == null) continue;
+    if (org.longitude == null) continue;
+
+    let type = 'Organization';
+    if (org.isConsultationCenter) {
+      type = 'Consultation Center';
+    }
+
+    items.push({
+      type,
+      name: org.name,
+      lat: org.latitude,
+      lng: org.longitude,
+      district: org.district,
+      upazila: org.upazila,
+      distanceKm: haversineDistanceKm(userLat, userLng, org.latitude, org.longitude),
+    });
+  }
+
+  // First try locations in the same detected area as the user.
+  let matches = [];
+  if (region.name) {
+    for (let i = 0; i < items.length; i++) {
+      if (matchesRegion(items[i], region)) {
+        matches.push(items[i]);
+      }
+    }
+  }
+
+  // Nothing matched the area, so fall back to a plain 50 km radius.
+  if (matches.length === 0) {
+    nearbyRegion.value = '';
+    matches = [];
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].distanceKm <= 50) {
+        matches.push(items[i]);
+      }
+    }
+  }
+
+  matches.sort(function (a, b) {
+    return a.distanceKm - b.distanceKm;
+  });
+
+  nearbyList.value = matches.slice(0, 10);
 }
 </script>
 

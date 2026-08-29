@@ -4,11 +4,18 @@ import api from './api';
 // FormData, so organizations can be created/updated with an optional photo.
 function toFormData(data) {
   const formData = new FormData();
-  Object.entries(data).forEach(([key, value]) => {
-    if (value !== null && value !== undefined) {
-      formData.append(key, value);
-    }
-  });
+  const keys = Object.keys(data);
+
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    const value = data[key];
+
+    if (value === null) continue;
+    if (value === undefined) continue;
+
+    formData.append(key, value);
+  }
+
   return formData;
 }
 

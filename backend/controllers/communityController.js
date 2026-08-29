@@ -8,55 +8,97 @@ const TOPICS = CommunityPost.TOPICS;
 const MAX_POST_IMAGES = CommunityPost.MAX_POST_IMAGES;
 
 // Escapes user input before using it in a regex search
-const escapeRegex = (value) => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 // Maps uploaded files to their public paths
-const toImagePaths = (files) => (files || []).map((file) => `/uploads/community/${file.filename}`);
+function toImagePaths(files) {
+  const paths = [];
+  if (!files) return paths;
+
+  for (let i = 0; i < files.length; i++) {
+    paths.push(`/uploads/community/${files[i].filename}`);
+  }
+
+  return paths;
+}
 
 // Removes attachment files from storage
-const removeImageFiles = (imagePaths) => {
-  (imagePaths || []).filter(Boolean).forEach((imagePath) => {
-    fs.unlink(path.join(__dirname, '..', String(imagePath).replace(/^\//, '')), () => {});
-  });
-};
+function removeImageFiles(imagePaths) {
+  if (!imagePaths) return;
+
+  for (let i = 0; i < imagePaths.length; i++) {
+    const imagePath = imagePaths[i];
+    if (!imagePath) continue;
+
+    const relativePath = String(imagePath).replace(/^\//, '');
+    const fullPath = path.join(__dirname, '..', relativePath);
+
+    fs.unlink(fullPath, () => {});
+  }
+}
 
 // Discards uploads that were rejected before being saved to a post
-const discardUploads = (files) => {
-  (files || []).forEach((file) => fs.unlink(file.path, () => {}));
-};
+function discardUploads(files) {
+  if (!files) return;
+
+  for (let i = 0; i < files.length; i++) {
+    fs.unlink(files[i].path, () => {});
+  }
+}
 
 // Shapes a post for list views, without its comments
-const shapeSummary = (post, meId) => ({
-  _id: post._id,
-  title: post.title,
-  body: post.body,
-  topic: post.topic,
-  images: post.images || [],
-  author: post.author,
-  authorName: post.authorName,
-  authorRole: post.authorRole,
-  edited: Boolean(post.edited),
-  editedAt: post.editedAt || null,
-  commentCount: post.commentCount ?? (post.comments ? post.comments.length : 0),
-  createdAt: post.createdAt,
-  updatedAt: post.updatedAt,
-  isOwner: meId ? String(post.author) === String(meId) : false,
-});
+function shapeSummary(post, meId) {
+  let isOwner = false;
+  if (meId) {
+    isOwner = String(post.author) === String(meId);
+  }
+
+  let commentCount = post.commentCount;
+  if (commentCount === undefined || commentCount === null) {
+    commentCount = post.comments ? post.comments.length : 0;
+  }
+
+  return {
+    _id: post._id,
+    title: post.title,
+    body: post.body,
+    topic: post.topic,
+    images: post.images || [],
+    author: post.author,
+    authorName: post.authorName,
+    authorRole: post.authorRole,
+    edited: Boolean(post.edited),
+    editedAt: post.editedAt || null,
+    commentCount,
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+    isOwner,
+  };
+}
 
 // Shapes a comment for the client
-const shapeComment = (comment, meId) => ({
-  _id: comment._id,
-  author: comment.author,
-  authorName: comment.authorName,
-  authorRole: comment.authorRole,
-  content: comment.content,
-  image: comment.image || null,
-  edited: Boolean(comment.edited),
-  editedAt: comment.editedAt || null,
-  createdAt: comment.createdAt,
-  updatedAt: comment.updatedAt,
-  isOwner: meId ? String(comment.author) === String(meId) : false,
-});
+function shapeComment(comment, meId) {
+  let isOwner = false;
+  if (meId) {
+    isOwner = String(comment.author) === String(meId);
+  }
+
+  return {
+    _id: comment._id,
+    author: comment.author,
+    authorName: comment.authorName,
+    authorRole: comment.authorRole,
+    content: comment.content,
+    image: comment.image || null,
+    edited: Boolean(comment.edited),
+    editedAt: comment.editedAt || null,
+    createdAt: comment.createdAt,
+    updatedAt: comment.updatedAt,
+    isOwner,
+  };
+}
 
 // GET /api/community/posts
 // Lists and searches discussions
@@ -85,8 +127,15 @@ const listPosts = async (req, res) => {
       CommunityPost.countDocuments(filter),
     ]);
 
+    const meId = req.user ? req.user._id : undefined;
+
+    const shapedPosts = [];
+    for (let i = 0; i < posts.length; i++) {
+      shapedPosts.push(shapeSummary(posts[i], meId));
+    }
+
     res.json({
-      posts: posts.map((p) => shapeSummary(p, req.user?._id)),
+      posts: shapedPosts,
       total,
       page,
       limit,
@@ -107,10 +156,17 @@ const getPost = async (req, res) => {
     const post = await CommunityPost.findById(req.params.id).lean();
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    const meId = req.user?._id;
+    const meId = req.user ? req.user._id : undefined;
+
+    const comments = post.comments || [];
+    const shapedComments = [];
+    for (let i = 0; i < comments.length; i++) {
+      shapedComments.push(shapeComment(comments[i], meId));
+    }
+
     res.json({
       ...shapeSummary(post, meId),
-      comments: (post.comments || []).map((c) => shapeComment(c, meId)),
+      comments: shapedComments,
     });
   } catch (err) {
     sendError(res, 500, 'Failed to load discussion', err);
@@ -200,8 +256,20 @@ const updatePost = async (req, res) => {
     if (req.body?.keepImages !== undefined) {
       const raw = req.body.keepImages;
       const requested = Array.isArray(raw) ? raw : String(raw).split(',');
-      const wanted = requested.map((v) => String(v).trim()).filter(Boolean);
-      keptImages = existing.filter((img) => wanted.includes(img));
+      const wanted = [];
+      for (let i = 0; i < requested.length; i++) {
+        const value = String(requested[i]).trim();
+        if (value) {
+          wanted.push(value);
+        }
+      }
+
+      keptImages = [];
+      for (let i = 0; i < existing.length; i++) {
+        if (wanted.includes(existing[i])) {
+          keptImages.push(existing[i]);
+        }
+      }
     }
 
     const added = toImagePaths(req.files);
@@ -210,7 +278,12 @@ const updatePost = async (req, res) => {
       return res.status(400).json({ message: `A post can have at most ${MAX_POST_IMAGES} images` });
     }
 
-    const removed = existing.filter((img) => !keptImages.includes(img));
+    const removed = [];
+    for (let i = 0; i < existing.length; i++) {
+      if (!keptImages.includes(existing[i])) {
+        removed.push(existing[i]);
+      }
+    }
     post.images = [...keptImages, ...added];
 
     post.edited = true;
@@ -232,10 +305,18 @@ const deletePost = async (req, res) => {
     const { post, error, message } = await loadOwnedPost(req.params.id, req.user._id);
     if (error) return res.status(error).json({ message });
 
-    const attachments = [
-      ...(post.images || []),
-      ...(post.comments || []).map((c) => c.image),
-    ];
+    // Collect the post's own images plus every comment's image
+    const attachments = [];
+
+    const postImages = post.images || [];
+    for (let i = 0; i < postImages.length; i++) {
+      attachments.push(postImages[i]);
+    }
+
+    const comments = post.comments || [];
+    for (let i = 0; i < comments.length; i++) {
+      attachments.push(comments[i].image);
+    }
 
     await post.deleteOne();
     removeImageFiles(attachments);

@@ -465,3 +465,23 @@ onMounted(() => {
   </div>
 </template>
 
+<style scoped>
+.request-list .list-group-item.active,
+.request-list .list-group-item.active h6 {
+  color: #ffffff;
+}
+
+[data-theme='dark'] .request-list .list-group-item.active,
+[data-theme='dark'] .request-list .list-group-item.active h6 {
+  color: var(--green-900);
+}
+[data-theme='dark'] .request-list .list-group-item.active .text-muted {
+  color: var(--green-800) !important;
+}
+[data-theme='dark'] .request-list .list-group-item:hover,
+[data-theme='dark'] .request-list .list-group-item:hover h6,
+[data-theme='dark'] .request-list .list-group-item:hover .text-muted {
+  color: #ffffff !important;
+}
+</style>
+

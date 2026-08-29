@@ -143,7 +143,10 @@
         </template>
 
         <div v-else class="msg-chat-placeholder">
-          <div class="empty-state mb-0">Select a conversation to start chatting.</div>
+          <div class="empty-state mb-0">
+            Select a conversation to start chatting.
+            <div style="font-style: italic;">(Farmers can only message experts)</div>
+          </div>
         </div>
       </section>
     </div>

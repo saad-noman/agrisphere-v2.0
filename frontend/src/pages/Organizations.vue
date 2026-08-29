@@ -79,9 +79,17 @@ useClickOutside(filterMenuRef, () => {
   showFilters.value = false;
 });
 
-const hasActiveFilters = computed(() =>
-  Object.values(filters.value).some((value) => value.trim() !== '')
-);
+const hasActiveFilters = computed(function () {
+  const values = Object.values(filters.value);
+
+  for (let i = 0; i < values.length; i++) {
+    if (values[i].trim() !== '') {
+      return true;
+    }
+  }
+
+  return false;
+});
 
 onMounted(loadOrganizations);
 

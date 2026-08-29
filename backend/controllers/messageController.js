@@ -6,17 +6,40 @@ const Expert = require('../models/Expert');
 const Notification = require('../models/Notification');
 const sendError = require('../utils/sendError');
 
-const isParticipant = (conversation, userId) =>
-  conversation.participants.some((p) => p.toString() === userId.toString());
+// True when the user takes part in the conversation
+function isParticipant(conversation, userId) {
+  for (let i = 0; i < conversation.participants.length; i++) {
+    if (conversation.participants[i].toString() === userId.toString()) {
+      return true;
+    }
+  }
+
+  return false;
+}
 
 // To shape a conversation for the requesting user (other participant + their unread count)
 async function shapeConversation(conversation, meId) {
-  const otherId = conversation.participants.find((p) => p.toString() !== meId.toString());
-  const other = otherId ? await User.findById(otherId).select('name role profileImage').lean() : null;
+  // The other participant is whoever in the pair is not me
+  let otherId = null;
+  for (let i = 0; i < conversation.participants.length; i++) {
+    if (conversation.participants[i].toString() !== meId.toString()) {
+      otherId = conversation.participants[i];
+      break;
+    }
+  }
 
-  let otherProfileImage = other?.profileImage || null;
+  let other = null;
+  if (otherId) {
+    other = await User.findById(otherId).select('name role profileImage').lean();
+  }
+
+  let otherProfileImage = null;
+  if (other && other.profileImage) {
+    otherProfileImage = other.profileImage;
+  }
+
   let expertId = null;
-  if (other?.role === 'expert') {
+  if (other && other.role === 'expert') {
     const expert = await Expert.findOne({ userId: otherId }).select('profileImage _id').lean();
     if (expert) {
       expertId = expert._id;
@@ -49,24 +72,38 @@ const getEligibleExperts = async (req, res) => {
     const existingConversations = await Conversation.find({ participants: req.user._id })
       .select('participants')
       .lean();
+    // Collect everyone this user already has a conversation with
     const alreadyMessaged = new Set();
-    existingConversations.forEach((c) => {
-      c.participants.forEach((p) => {
-        if (p.toString() !== req.user._id.toString()) alreadyMessaged.add(p.toString());
-      });
-    });
+    for (let i = 0; i < existingConversations.length; i++) {
+      const participants = existingConversations[i].participants;
+
+      for (let j = 0; j < participants.length; j++) {
+        const participantId = participants[j].toString();
+
+        if (participantId !== req.user._id.toString()) {
+          alreadyMessaged.add(participantId);
+        }
+      }
+    }
 
     const experts = await Expert.find({ userId: { $ne: null } })
       .select('fullName specialization expertiseCategory district upazila profileImage userId availabilityStatus')
       .sort({ fullName: 1 })
       .lean();
 
-    const list = experts.filter(
-      (e) =>
-        e.userId &&
-        e.userId.toString() !== req.user._id.toString() &&
-        !alreadyMessaged.has(e.userId.toString())
-    );
+    // Keep only experts who are someone else and not already messaged
+    const list = [];
+    for (let i = 0; i < experts.length; i++) {
+      const expert = experts[i];
+
+      if (!expert.userId) continue;
+
+      const expertUserId = expert.userId.toString();
+      if (expertUserId === req.user._id.toString()) continue;
+      if (alreadyMessaged.has(expertUserId)) continue;
+
+      list.push(expert);
+    }
     res.json(list);
   } catch (err) {
     sendError(res, 500, 'Failed to load experts', err);
@@ -96,8 +133,20 @@ const startConversation = async (req, res) => {
     const target = await User.findById(targetUserId).select('role').lean();
     if (!target) return res.status(404).json({ message: 'Recipient not found' });
 
+    // A conversation needs one expert, paired with a farmer or another expert
     const pairRoles = [req.user.role, target.role];
-    const validPair = pairRoles.includes('expert') && pairRoles.some((r) => r === 'farmer' || r === 'expert');
+
+    let hasExpert = false;
+    let hasFarmerOrExpert = false;
+
+    for (let i = 0; i < pairRoles.length; i++) {
+      const role = pairRoles[i];
+
+      if (role === 'expert') hasExpert = true;
+      if (role === 'farmer' || role === 'expert') hasFarmerOrExpert = true;
+    }
+
+    const validPair = hasExpert && hasFarmerOrExpert;
     if (!validPair) {
       return res.status(403).json({ message: 'Messaging is available between farmers and experts' });
     }
@@ -136,10 +185,19 @@ const listConversations = async (req, res) => {
 
 // To load a conversation only if the requesting user is a participant
 async function loadAuthorizedConversation(conversationId, userId) {
-  if (!mongoose.isValidObjectId(conversationId)) return { error: 400, message: 'Invalid conversation id' };
+  if (!mongoose.isValidObjectId(conversationId)) {
+    return { error: 400, message: 'Invalid conversation id' };
+  }
+
   const conversation = await Conversation.findById(conversationId);
-  if (!conversation) return { error: 404, message: 'Conversation not found' };
-  if (!isParticipant(conversation, userId)) return { error: 403, message: 'Not authorized for this conversation' };
+  if (!conversation) {
+    return { error: 404, message: 'Conversation not found' };
+  }
+
+  if (!isParticipant(conversation, userId)) {
+    return { error: 403, message: 'Not authorized for this conversation' };
+  }
+
   return { conversation };
 }
 
@@ -156,9 +214,16 @@ const getMessages = async (req, res) => {
       .lean();
 
     // Removed messages keep their place without exposing the original text
-    const messages = raw.map((m) =>
-      m.deleted ? { ...m, text: '', deleted: true } : m
-    );
+    const messages = [];
+    for (let i = 0; i < raw.length; i++) {
+      const message = raw[i];
+
+      if (message.deleted) {
+        messages.push({ ...message, text: '', deleted: true });
+      } else {
+        messages.push(message);
+      }
+    }
 
     await Message.updateMany(
       { conversation: conversation._id, sender: { $ne: req.user._id }, read: false },
@@ -270,11 +335,22 @@ const getUnreadCount = async (req, res) => {
       .select('unreadCounts')
       .lean();
     const meId = req.user._id.toString();
-    const total = conversations.reduce((sum, c) => {
-      const uc = c.unreadCounts || {};
-      const n = uc instanceof Map ? uc.get(meId) : uc[meId];
-      return sum + (n || 0);
-    }, 0);
+    // Add up my unread count across every conversation
+    let total = 0;
+    for (let i = 0; i < conversations.length; i++) {
+      const unreadCounts = conversations[i].unreadCounts || {};
+
+      let count;
+      if (unreadCounts instanceof Map) {
+        count = unreadCounts.get(meId);
+      } else {
+        count = unreadCounts[meId];
+      }
+
+      if (count) {
+        total = total + count;
+      }
+    }
     res.json({ unread: total });
   } catch (err) {
     sendError(res, 500, 'Failed to load unread count', err);
