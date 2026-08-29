@@ -24,3 +24,7 @@ export function sendMessage(conversationId, text) {
 export function getUnreadCount() {
   return api.get('/messages/unread-count');
 }
+
+export function deleteMessage(messageId) {
+  return api.delete(`/messages/messages/${messageId}`);
+}

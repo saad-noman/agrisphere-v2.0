@@ -398,7 +398,7 @@ onMounted(() => {
                       <h6 class="fw-bold mb-2">Select a Stock Crop Preset:</h6>
                       
                       <div v-if="stockImages.length === 0" class="text-muted small py-2">
-                        No stock images found in <code>backend/uploads/stock-crops/</code>. Drop your 34 JPG files into that folder to see them here!
+                        No stock images found in database!
                       </div>
 
                       <div v-else class="d-flex flex-wrap gap-2 max-stock-grid">

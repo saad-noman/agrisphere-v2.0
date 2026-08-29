@@ -5,6 +5,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const multer = require('multer');
 const connectDB = require('./config/db');
 
 const authRoutes = require('./routes/authRoutes');
@@ -32,6 +33,9 @@ const assistantRoutes = require('./routes/assistantRoutes');
 const cropAnalysisRoutes = require('./routes/cropAnalysisRoutes');
 const messageRoutes = require('./routes/messageRoutes');
 const ratingRoutes = require('./routes/ratingRoutes');
+const pricePlanRoutes = require('./routes/pricePlanRoutes');
+const communityRoutes = require('./routes/communityRoutes');
+const statsRoutes = require('./routes/statsRoutes');
 
 const app = express();
 
@@ -98,6 +102,25 @@ app.use('/api/assistant', assistantRoutes);
 app.use('/api/crop-analysis', cropAnalysisRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/ratings', ratingRoutes);
+app.use('/api/price-plans', pricePlanRoutes);
+app.use('/api/community', communityRoutes);
+app.use('/api/stats', statsRoutes);
+
+// Turns upload failures into clear client errors instead of generic 500s
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    const messages = {
+      LIMIT_FILE_SIZE: 'Each image must be 5 MB or smaller',
+      LIMIT_FILE_COUNT: 'Too many images uploaded',
+      LIMIT_UNEXPECTED_FILE: 'Too many images uploaded',
+    };
+    return res.status(400).json({ message: messages[err.code] || 'Upload failed' });
+  }
+  if (err && err.message === 'Only image files are allowed') {
+    return res.status(400).json({ message: err.message });
+  }
+  return next(err);
+});
 
 const PORT = process.env.PORT || 5000;
 

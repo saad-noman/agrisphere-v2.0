@@ -1,10 +1,7 @@
 import { reactive, computed } from 'vue';
 
-// Theme preference: 'light' | 'dark' | 'system'.
-// 'system' follows the OS setting live. The resolved value is written to
-// <html> as BOTH data-theme (our own CSS) and data-bs-theme (Bootstrap
-// 5.3's built-in color modes), so Bootstrap components (cards, forms,
-// tables, modals, dropdowns) switch along with our custom styling.
+// Theme preference: 'light' | 'dark' | 'system'. The resolved value is set
+// on <html> as data-theme and data-bs-theme so Bootstrap follows along.
 const STORAGE_KEY = 'agrisphere-theme';
 
 const media = window.matchMedia('(prefers-color-scheme: dark)');
@@ -44,8 +41,7 @@ export function setTheme(preference) {
   apply();
 }
 
-// Simple switch for the navbar button: flips between light and dark based on
-// what's currently on screen (so it works even when set to 'system').
+// Flips between light and dark based on what is currently shown
 export function toggleTheme() {
   setTheme(resolvedTheme.value === 'dark' ? 'light' : 'dark');
 }

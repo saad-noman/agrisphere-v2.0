@@ -22,10 +22,7 @@
   --shadow-md: 0 6px 18px rgba(24, 40, 22, 0.10);
   --shadow-lg: 0 14px 40px rgba(24, 40, 22, 0.16);
 
-  /* Single source of truth for stacking order. Higher = closer to the user.
-     The Leaflet map is isolated into its own stacking context (see
-     .leaflet-map below) so its internal panes/controls can never rise above
-     these app chrome layers. */
+  /* Stacking order. Higher sits closer to the user. */
   --z-map: 1;
   --z-navbar: 1000;
   --z-dropdown: 1100;
@@ -37,10 +34,7 @@
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Filled brand surfaces that always carry WHITE text (page banners,
-     primary CTAs, active tabs). These deliberately do NOT invert in dark
-     mode — same principle as .hero — otherwise white text lands on a light
-     green fill and becomes unreadable. */
+  /* Filled brand surfaces that always carry white text. Fixed in both themes. */
   --brand-fill: #2f6b3a;
   --brand-fill-hover: #234d20;
   --brand-banner: linear-gradient(135deg, #3f8a4f 0%, #1d4322 100%);
@@ -534,17 +528,13 @@ body {
   height: 100%;
   border-radius: 16px;
   overflow: hidden;
-  /* Root cause fix for "dropdowns hide behind the map": Leaflet gives its own
-     panes/controls z-index values up to 1000. Isolating the map into a low
-     stacking context (position + z-index + isolation) traps ALL of those
-     internal values below the app chrome (navbar, dropdowns, drawer, modals,
-     FABs), instead of patching a single dropdown. */
+  /* Isolates the map so its panes never rise above the app chrome */
   position: relative;
   z-index: var(--z-map);
   isolation: isolate;
 }
 
-/* Belt-and-braces: any Leaflet container in the app is contained the same way. */
+/* Any Leaflet container is contained the same way */
 .leaflet-container {
   position: relative;
   z-index: var(--z-map);
@@ -1219,8 +1209,7 @@ a.quick-link-card:hover {
   border-color: var(--green);
 }
 
-/* Shared status-badge system, generalized from the Dashboard page's
-   .dashboard-status* pattern, for status labels elsewhere in the app. */
+/* Shared status badges, used across the app */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -3287,9 +3276,7 @@ a.quick-link-card:hover {
 
 /* ---------- 5) RESPONSIVE & OVERFLOW SAFETY ------------------------ */
 html { scroll-behavior: smooth; }
-/* `clip`, not `hidden`: overflow-x:hidden turns <body> into a scroll
-   container, which stops the sticky navbar from sticking. `clip` prevents
-   sideways overflow without creating a scrollport. */
+/* `clip` avoids creating a scroll container, which would break the sticky navbar */
 body { overflow-x: clip; }
 @supports not (overflow: clip) {
   body { overflow-x: hidden; }
@@ -3312,11 +3299,8 @@ img, svg, video { max-width: 100%; }
 }
 
 /* =====================================================================
-   AGRISPHERE DESIGN SYSTEM — REFINEMENT LAYER
-   Appended last so it harmonizes everything above it. Pages keep using the
-   same class names they always have (.card, .form-control, .btn-pill,
-   .list-group, .badge, .table ...) — restyling those shared primitives here
-   updates every page at once, with no page markup or backend changes.
+   DESIGN SYSTEM
+   Shared primitives (.card, .form-control, .btn-pill, .list-group, .table)
    ===================================================================== */
 
 /* ---------- TOKENS ------------------------------------------------- */
@@ -3399,11 +3383,7 @@ h3 { font-size: clamp(1.15rem, 1rem + 0.6vw, 1.4rem); }
 h4 { font-size: 1.12rem; }
 h5 { font-size: 1rem; }
 
-/* Page headings get a little breathing room + a brand underline accent, so
-   every page opens the same way without editing each page's markup. Pages
-   consistently render `<div class="... container py-4"><h2>Title</h2>`, so
-   the accent is scoped to a leading h2/h1 inside a page container only —
-   headings inside cards and lists are left alone. */
+/* Brand underline accent on the leading page heading */
 .page-content .container > h1:first-child,
 .page-content .container > h2:first-child,
 .page-content > div > h1:first-child,
@@ -3892,7 +3872,7 @@ textarea.form-control { min-height: 96px; line-height: 1.6; }
     linear-gradient(135deg, var(--green-800) 0%, var(--green-600) 52%, var(--green-500) 100%);
   box-shadow: var(--shadow-md);
 }
-/* Soft organic accent instead of a flat block of color. */
+/* Soft radial accent */
 .hero::after {
   content: '';
   position: absolute;
@@ -3931,14 +3911,13 @@ textarea.form-control { min-height: 96px; line-height: 1.6; }
   border-color: #fff;
   color: #fff;
 }
-/* The hero is dark green in BOTH themes, so its CTA stays white on purpose
-   rather than following the surface token. */
+/* The hero is dark green in both themes, so its CTA stays white */
 .hero .btn-pill {
   background: #FFFFFF;
   color: var(--green-800);
   box-shadow: 0 8px 22px rgba(0, 0, 0, 0.20);
 }
-.hero .btn-pill:hover { background: #FFFFFF; color: var(--green-900); }
+.hero .btn-pill:hover { background: #56be71; color: var(--green-900); }
 
 .quick-links-section,
 .features-section { padding: 40px 16px 8px; }
@@ -3968,7 +3947,7 @@ textarea.form-control { min-height: 96px; line-height: 1.6; }
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease),
     border-color 0.2s var(--ease);
 }
-/* Accent bar reveals on hover — gives the grid life without extra markup. */
+/* Accent bar revealed on hover */
 .quick-link-card::before {
   content: '';
   position: absolute;
@@ -4208,11 +4187,7 @@ a.quick-link-card:hover::before { transform: scaleX(1); }
   box-shadow: 0 0 0 3px rgba(111, 184, 124, 0.3);
 }
 
-/* =====================================================================
-   FINAL OVERRIDES — must stay last in the file.
-   The refinement layer above re-declares FAB sizing/offsets, so the
-   small-screen rules are restated here to win on cascade order.
-   ===================================================================== */
+/* Small-screen overrides for the floating buttons. Keep last in the file. */
 @media (max-width: 480px) {
   .ai-assistant { right: 14px; bottom: 14px; }
   .ai-fab, .msg-fab { width: 52px; height: 52px; }
@@ -4370,12 +4345,7 @@ a.quick-link-card:hover::before { transform: scaleX(1); }
   --border: rgba(255, 255, 255, 0.10);
   --border-strong: rgba(255, 255, 255, 0.18);
 
-  /* Legacy aliases from the original stylesheet are still referenced by ~80
-     older rules (headings, links, icon fills). They were authored as *dark*
-     greens for text on white, so on a dark surface they fail contrast —
-     the login heading was nearly invisible. Remap them to the light end of
-     the ramp here; gradients that use them simply read lighter, which suits
-     dark mode. */
+  /* Legacy green aliases remapped to the light end of the ramp for dark mode */
   --green-dark: #6ccd85;
   --green: #58c274;
   --green-light: #7ad492;
@@ -4405,8 +4375,7 @@ a.quick-link-card:hover::before { transform: scaleX(1); }
   border-color: var(--border);
 }
 
-/* Elements that are white-on-gradient stay light; these are the few that
-   were explicitly light-surfaced and need re-tinting. */
+/* Light-surfaced elements that need re-tinting in dark mode */
 [data-theme='dark'] .app-footer { background: #0b120b; }
 [data-theme='dark'] .bg-light { background: var(--surface-muted) !important; }
 [data-theme='dark'] .hero {
@@ -4428,7 +4397,7 @@ a.quick-link-card:hover::before { transform: scaleX(1); }
 [data-theme='dark'] .text-dark { color: var(--text-dark) !important; }
 [data-theme='dark'] .border { border-color: var(--border) !important; }
 
-/* Theme transition — colours ease instead of snapping. */
+/* Eases colour changes when switching theme */
 body,
 .navbar-agri,
 .card,
@@ -4827,15 +4796,9 @@ body,
 /* The drawer body is account-scoped now, so give sections room to breathe. */
 .app-drawer-body .drawer-section + .drawer-section { margin-top: 14px; }
 
-/* =====================================================================
-   LAYOUT FIXES (verified against rendered screenshots)
-   ===================================================================== */
+/* ---------- Layout ---------------------------------------------------- */
 
-/* The hero headline was rendering centred: `.hero > *` applied auto side
-   margins, and because the h1 is capped at ~16ch its box got centred inside
-   the hero. Pin children to the left instead, and pad the hero so its text
-   column lines up with the 1180px page container used by every section
-   below it. */
+/* Hero content is left-aligned and padded to match the page container */
 .hero {
   padding-inline: max(clamp(20px, 5vw, 56px), calc((100vw - 1180px) / 2 - 16px));
 }
@@ -4848,13 +4811,11 @@ body,
 .hero-actions,
 .hero-eyebrow { text-align: left; }
 
-/* Roomier tiles so labels like "Consult Agricultural Experts" don't wrap
-   onto three lines. */
+/* Roomier tiles so longer labels don't wrap awkwardly */
 .quick-links-grid { grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); }
 .quick-link-label { min-height: 2.4em; display: flex; align-items: center; }
 
-/* The floating chat/message buttons sit over the page, so reserve space at
-   the bottom of every page to stop them covering the last row of content. */
+/* Reserves space so the floating buttons never cover page content */
 .page-content { padding-bottom: 96px; }
 
 @media (max-width: 576px) {
@@ -4936,13 +4897,8 @@ body,
    v3 UI REFINEMENTS
    ===================================================================== */
 
-/* ---------- 1) DRAWER SLIDE ANIMATION -------------------------------
-   Root cause of the "abrupt" drawer: a later rule in the theme-transition
-   block re-declared `.app-drawer { transition: background-color … }`, which
-   replaced the transform transition defined by the Vue transition classes
-   (same specificity, later in the file wins). Declaring the transform
-   transition on the element itself — last — makes the slide reliable in
-   both directions regardless of class ordering. */
+/* Drawer slide. The transform transition lives on the element so it
+   survives later rules that also set `transition`. */
 .app-drawer {
   transition:
     transform 0.3s cubic-bezier(0.32, 0.72, 0, 1),
@@ -4955,8 +4911,7 @@ body,
 .drawer-slide-leave-to { transform: translateX(-100%); }
 .drawer-slide-enter-to,
 .drawer-slide-leave-from { transform: translateX(0); }
-/* The transition lives on .app-drawer above, so these only need to keep the
-   element alive for the duration — they must not re-declare `transition`. */
+/* These must not re-declare `transition` */
 .drawer-slide-enter-active,
 .drawer-slide-leave-active { pointer-events: none; }
 
@@ -4975,7 +4930,7 @@ body,
   .app-drawer, .app-drawer-backdrop { transition: none; }
 }
 
-/* ---------- 2) CONFIRMATION DIALOG ---------------------------------- */
+/* ---------- Confirmation dialog -------------------------------------- */
 .confirm-backdrop {
   position: fixed;
   inset: 0;
@@ -5084,7 +5039,7 @@ body,
   .confirm-btn { width: 100%; }
 }
 
-/* ---------- 3) HOME — FOUR CORE FEATURES ---------------------------- */
+/* ---------- Home feature cards --------------------------------------- */
 .core-features-section { padding: 40px 16px 8px; }
 .core-features-grid {
   display: grid;
@@ -5149,9 +5104,8 @@ body,
   .core-feature-arrow { display: none; }
 }
 
-/* ---------- 4) EXPERT / ORGANIZATION PHOTO CARDS -------------------- */
-/* Detail-page photo: fixed aspect ratio so portrait/landscape uploads all
-   render at a consistent size without stretching or overflowing. */
+/* ---------- Expert and organization photo cards ---------------------- */
+/* Fixed aspect ratio so uploads of any shape render consistently */
 .expert-photo-large,
 .org-photo-large {
   width: 100%;
@@ -5188,9 +5142,7 @@ body,
   margin-right: 0;
 }
 
-/* Rows keep the thumbnail beside its text at every width. The text column
-   is allowed to shrink (min-width:0) so long names wrap inside the row
-   instead of pushing the thumbnail onto its own line or overflowing. */
+/* Keeps the thumbnail beside its text; the text column shrinks instead of wrapping */
 .list-group-item.d-flex { flex-wrap: wrap; gap: 12px; }
 .list-group-item.d-flex > div,
 .list-group-item.d-flex > span {
@@ -5211,9 +5163,7 @@ body,
   .detail-page-card .col-md-4 { display: flex; align-items: flex-start; justify-content: center; }
 }
 
-/* ---------- 5) DARK MODE CONTRAST SAFETY NET -----------------------
-   Utility classes and native controls that hard-assume a light page.
-   Handled centrally here so individual pages don't need per-file fixes. */
+/* ---------- Dark mode contrast for light-assuming utilities ---------- */
 
 /* Bootstrap utilities that stay light regardless of colour mode. */
 [data-theme='dark'] .bg-white,
@@ -5296,16 +5246,406 @@ body,
 [data-theme='dark'] .nav-dropdown-menu,
 [data-theme='dark'] .confirm-dialog { background: var(--surface); color: var(--text-body); }
 
-/* ---------- 6) BANNER-STYLE PAGE HEADERS ----------------------------
-   Some feature pages (Crop Recommendation, Weather) use .page-header /
-   .weather-header as a filled brand BANNER rather than a plain title block.
-   The generic "muted sub-line" rule above is meant for titles sitting on the
-   page background, and it was overriding the banner's white text (higher
-   specificity than the component's own scoped rule). Banner paragraphs
-   inherit the banner's foreground colour instead. */
+/* Banner-style page headers: their paragraphs inherit the banner colour
+   instead of the muted page text colour. */
 .page-content .page-header > p.header-subtitle,
 .page-content .weather-header > p,
 .page-content .weather-header > p.subtitle {
   color: inherit;
   opacity: 0.92;
+}
+
+/* =====================================================================
+   PRICE PLANNER + COMMUNITY HUB + MESSAGE REMOVAL
+   Built from the existing tokens/primitives so both themes work.
+   ===================================================================== */
+
+/* ---------- Price planner ------------------------------------------- */
+.planner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.planner-total {
+  margin-left: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 1.05rem;
+}
+.planner-total strong { font-size: 1.35rem; color: var(--green-700); }
+.price-meta { margin-top: 10px; font-size: 0.8rem; color: var(--text-muted); }
+.price-live-tag {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--green-600);
+}
+.price-note-tag {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.72rem;
+  color: var(--warning);
+}
+.saved-plan-list .list-group-item { display: block; }
+.saved-plan-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+.saved-plan-name {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  color: var(--green-700);
+  text-align: left;
+  cursor: pointer;
+}
+.saved-plan-name:hover { text-decoration: underline; }
+.saved-plan-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+@media (max-width: 576px) {
+  .planner-total { margin-left: 0; width: 100%; justify-content: space-between; }
+}
+
+/* ---------- Community hub -------------------------------------------- */
+.community-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+.community-search {
+  display: flex;
+  gap: 8px;
+  flex: 1 1 320px;
+  min-width: 0;
+}
+.community-search .form-control { min-width: 0; }
+.community-topic { flex: 0 1 200px; }
+
+.community-list { display: flex; flex-direction: column; gap: 12px; }
+.community-card { cursor: pointer; }
+.community-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.community-topic-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--green-50);
+  border: 1px solid var(--green-100);
+  color: var(--green-700);
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+.community-card-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--text-dark);
+  overflow-wrap: anywhere;
+}
+.community-card-excerpt {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+  overflow-wrap: anywhere;
+}
+.community-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: var(--text-body);
+}
+.community-role {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.community-post-title {
+  font-size: clamp(1.3rem, 1.1rem + 1vw, 1.75rem);
+  margin: 6px 0 10px;
+  overflow-wrap: anywhere;
+}
+.community-post-body,
+.community-comment-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text-body);
+  line-height: 1.65;
+  margin: 8px 0 0;
+}
+.community-comments .list-group-item { display: block; }
+.community-comments .btn-pill-danger { margin-top: 8px; }
+
+@media (max-width: 576px) {
+  .community-toolbar > * { width: 100%; }
+  .community-topic { flex-basis: auto; }
+}
+
+/* ---------- Message removal ------------------------------------------ */
+.msg-bubble { position: relative; }
+.msg-text-removed {
+  font-style: italic;
+  opacity: 0.75;
+}
+.msg-bubble-removed { opacity: 0.85; }
+
+.msg-delete-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  opacity: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s var(--ease), background 0.15s var(--ease);
+}
+.msg-delete-btn svg { width: 13px; height: 13px; }
+.msg-bubble:hover .msg-delete-btn,
+.msg-delete-btn:focus-visible { opacity: 0.85; }
+.msg-delete-btn:hover { background: rgba(0, 0, 0, 0.14); opacity: 1; }
+/* Touch devices have no hover, so keep the control visible there. */
+@media (hover: none) {
+  .msg-delete-btn { opacity: 0.7; }
+}
+
+/* Compact remove control so the planner row never clips its action column. */
+.planner-action-col { width: 44px; }
+.planner-remove-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--danger);
+  cursor: pointer;
+  transition: background 0.15s var(--ease), border-color 0.15s var(--ease);
+}
+.planner-remove-btn svg { width: 15px; height: 15px; }
+.planner-remove-btn:hover:not(:disabled) {
+  background: var(--danger-100);
+  border-color: var(--danger);
+}
+.planner-remove-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Planner rows stack into labelled cards on phones */
+@media (max-width: 640px) {
+  .price-planner .table-responsive { overflow-x: visible; }
+  .price-planner table,
+  .price-planner tbody,
+  .price-planner tr,
+  .price-planner td { display: block; width: 100%; }
+  .price-planner thead { display: none; }
+  .price-planner tbody tr {
+    position: relative;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface-muted);
+    padding: 12px 12px 10px;
+    margin-bottom: 12px;
+  }
+  .price-planner tbody td {
+    border: none;
+    padding: 6px 0;
+    display: grid;
+    grid-template-columns: 96px 1fr;
+    align-items: center;
+    gap: 10px;
+  }
+  .price-planner tbody td::before {
+    content: attr(data-label);
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+  .price-planner tbody td.text-end { text-align: left !important; font-size: 1.05rem; }
+  /* Remove sits in the row's top-right corner instead of its own line. */
+  .price-planner .planner-action-cell {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: auto;
+    padding: 0;
+    display: block;
+  }
+  .price-planner .planner-action-cell::before { content: none; }
+}
+
+/* ---------- Community attachments ------------------------------------ */
+.image-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.image-preview {
+  position: relative;
+  width: 92px;
+  height: 92px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+.image-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.image-preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(20, 30, 20, 0.72);
+  color: #fff;
+  font-size: 0.72rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.image-preview-remove:hover { background: var(--danger); }
+
+.community-thumb-strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  flex-wrap: wrap;
+}
+.community-thumb {
+  width: 68px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+.community-thumb-more {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.community-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.community-gallery-item {
+  display: block;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  aspect-ratio: 4 / 3;
+}
+.community-gallery-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.community-comment-image {
+  display: block;
+  margin-top: 10px;
+  max-width: 220px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.community-comment-image img { width: 100%; display: block; }
+
+.community-owner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.edited-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 8px;
+}
+
+@media (max-width: 480px) {
+  .community-gallery { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+  .image-preview { width: 76px; height: 76px; }
+}
+
+/* Welcome image inside the hero: full width, natural aspect ratio, never
+   cropped. The welcome message sits above it and stays the focus. */
+.hero-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin-top: 28px;
+  border-radius: var(--radius-lg);
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 576px) {
+  .hero-image { margin-top: 20px; border-radius: var(--radius-md); }
+}
+
+
+/* Status badges use dark-theme-only text colours so the tinted pill stays
+   readable on a dark card. */
+[data-theme='dark'] .status-success,
+[data-theme='dark'] .dashboard-status-completed,
+[data-theme='dark'] .dashboard-status-resolved {
+  background: rgba(88, 194, 116, 0.16);
+  color: #8fdca6;
+}
+[data-theme='dark'] .status-danger,
+[data-theme='dark'] .dashboard-status-rejected {
+  background: rgba(242, 119, 106, 0.16);
+  color: #f5a99f;
+}
+[data-theme='dark'] .status-warning,
+[data-theme='dark'] .dashboard-status-pending {
+  background: rgba(224, 169, 85, 0.16);
+  color: #edc389;
+}
+[data-theme='dark'] .status-info,
+[data-theme='dark'] .dashboard-status-active {
+  background: rgba(109, 178, 232, 0.16);
+  color: #9ccbf0;
+}
+[data-theme='dark'] .status-neutral {
+  background: var(--surface-muted);
+  color: var(--text-muted);
 }

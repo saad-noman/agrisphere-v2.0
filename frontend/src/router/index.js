@@ -36,6 +36,9 @@ import SeasonalPerformance from '../pages/SeasonalPerformance.vue';
 import Dashboard from '../pages/Dashboard.vue';
 import CropAnalysis from '../pages/CropAnalysis.vue';
 import Messages from '../pages/Messages.vue';
+import PricePlanner from '../pages/PricePlanner.vue';
+import Community from '../pages/Community.vue';
+import CommunityPost from '../pages/CommunityPost.vue';
 const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/login', name: 'Login', component: Login },
@@ -74,11 +77,22 @@ const routes = [
   { path: '/dashboard', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true, role: 'farmer' } },
   { path: '/crop-analysis', name: 'CropAnalysis', component: CropAnalysis, meta: { requiresAuth: true } },
   { path: '/messages', name: 'Messages', component: Messages, meta: { requiresAuth: true } },
+  { path: '/price-planner', name: 'PricePlanner', component: PricePlanner, meta: { requiresAuth: true } },
+  { path: '/community', name: 'Community', component: Community },
+  { path: '/community/:id', name: 'CommunityPost', component: CommunityPost },
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
+  // Start each new page at the top instead of keeping the previous page's
+  // scroll offset; still restore scroll position on browser back/forward.
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition;
+    }
+    return { top: 0 };
+  },
 });
 
 export default router;

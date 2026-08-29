@@ -193,11 +193,8 @@ onMounted(async () => {
   focusRequestedLocation();
 });
 
-// Lets other pages (e.g. an expert profile or organization detail page) deep
-// link here with ?type=expert|org&id=... to center the map on that one
-// location. The id is looked up in our own already-fetched data rather than
-// trusting anything from the URL directly, so nothing unescaped from the
-// query string ever ends up in a marker popup.
+// Centres the map on a deep-linked location (?type=expert|org&id=...).
+// The id is resolved against already-fetched data, never used directly.
 function focusRequestedLocation() {
   const { type, id } = route.query;
   if (!type || !id) return;

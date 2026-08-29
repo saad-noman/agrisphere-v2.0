@@ -59,9 +59,7 @@
 import { ref, watch, nextTick, onUnmounted } from 'vue';
 import { confirmState, resolveConfirm } from '../stores/confirm';
 
-// Single app-wide confirmation dialog. Pages call `confirmAction(...)` from
-// stores/confirm.js and await the boolean result, so one component replaces
-// every window.confirm() in the app instead of a modal per page.
+// Single app-wide confirmation dialog driven by stores/confirm.js
 const dialogRef = ref(null);
 const confirmBtn = ref(null);
 let lastFocused = null;
@@ -87,9 +85,8 @@ watch(
       tone.value = confirmState.tone;
       lastFocused = document.activeElement;
       visible.value = true;
-      // Focus the dialog so Escape works and screen readers announce it.
-      // The destructive button is NOT auto-focused, to avoid an accidental
-      // Enter keypress confirming a deletion.
+      // Focus the dialog, not the destructive button, so Enter can't
+      // confirm a deletion by accident
       await nextTick();
       dialogRef.value?.focus?.();
       document.body.style.overflow = 'hidden';

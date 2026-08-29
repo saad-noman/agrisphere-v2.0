@@ -6,11 +6,13 @@ const generalUploadDir = path.join(__dirname, '../uploads');
 const diseaseCaseUploadDir = path.join(__dirname, '../uploads/disease-cases');
 const stockCropsUploadDir = path.join(__dirname, '../uploads/stock-crops');
 const cropAnalysisUploadDir = path.join(__dirname, '../uploads/crop-analysis');
+const communityUploadDir = path.join(__dirname, '../uploads/community');
 
 fs.mkdirSync(generalUploadDir, { recursive: true });
 fs.mkdirSync(diseaseCaseUploadDir, { recursive: true });
 fs.mkdirSync(stockCropsUploadDir, { recursive: true });
 fs.mkdirSync(cropAnalysisUploadDir, { recursive: true });
+fs.mkdirSync(communityUploadDir, { recursive: true });
 
 const generalStorage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, generalUploadDir),
@@ -71,7 +73,37 @@ const cropAnalysisUpload = multer({
   },
 });
 
-// To check the real file bytes against known image signatures (Content-Type is spoofable)
+const communityStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, communityUploadDir),
+  filename: (req, file, cb) => {
+    const extension = path.extname(file.originalname);
+    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}${extension}`;
+    cb(null, filename);
+  },
+});
+
+// Community post attachments (up to 5 images)
+const communityUpload = multer({
+  storage: communityStorage,
+  fileFilter,
+  limits: {
+    files: 5,
+    fileSize: 5 * 1024 * 1024,
+  },
+});
+
+// Single image attached to a community comment
+const communityCommentUpload = multer({
+  storage: communityStorage,
+  fileFilter,
+  limits: {
+    files: 1,
+    fileSize: 5 * 1024 * 1024,
+  },
+});
+
+// Checks real file bytes against known image signatures, since Content-Type is spoofable
+
 const IMAGE_SIGNATURES = [
   { bytes: [0xff, 0xd8, 0xff] }, // JPEG
   { bytes: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] }, // PNG
@@ -106,7 +138,7 @@ const matchesAnySignature = (filePath, signatures) => {
   }
 };
 
-// To build middleware that rejects uploads whose file bytes don't match the given signatures
+// Builds middleware that rejects uploads whose bytes don't match the given signatures
 const makeContentVerifier = (signatures, rejectMessage) => (req, res, next) => {
   const files = req.files ? (Array.isArray(req.files) ? req.files : Object.values(req.files).flat()) : req.file ? [req.file] : [];
 
@@ -133,5 +165,9 @@ module.exports = upload;
 module.exports.upload = upload;
 module.exports.diseaseUpload = upload;
 module.exports.cropAnalysisUpload = cropAnalysisUpload;
+// Saves directly under /uploads, matching the paths the profile controller stores
+module.exports.generalUpload = generalUpload;
+module.exports.communityUpload = communityUpload;
+module.exports.communityCommentUpload = communityCommentUpload;
 module.exports.verifyImageContent = verifyImageContent;
 module.exports.verifyImageOrPdfContent = verifyImageOrPdfContent;

@@ -1,8 +1,5 @@
 <template>
-  <!-- Circular Message button, always rendered directly ABOVE the chatbot
-       FAB. It was previously hidden for guests and non farmer/expert roles,
-       which made it look like it was missing — it is now always visible and
-       simply routes guests to login first. -->
+  <!-- Message button, shown above the chatbot. Guests are sent to login. -->
   <div class="msg-launcher">
     <button
       type="button"

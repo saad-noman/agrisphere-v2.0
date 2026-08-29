@@ -9,11 +9,8 @@
       ></div>
     </transition>
 
-    <!-- Drawer panel.
-         Deliberately does NOT repeat the navbar's navigation. The navbar
-         owns feature navigation (Explore / role workspace / Consultation);
-         this drawer owns the account: identity, personal destinations,
-         appearance and session. -->
+    <!-- Drawer holds account, appearance and session. Feature navigation
+         lives in the navbar. -->
     <transition name="drawer-slide">
       <aside
         v-if="uiState.drawerOpen"
@@ -35,8 +32,7 @@
             </svg>
           </button>
 
-          <!-- Avatar only exists for an authenticated user. Logged out there
-               is no empty circle or reserved space at all. -->
+          <!-- Avatar is only rendered for a signed-in user -->
           <div v-if="authState.user" class="drawer-avatar">
             <img v-if="photoUrl" :src="photoUrl" alt="Profile photo" />
             <!-- Clean person silhouette when the user has no photo -->
@@ -184,8 +180,7 @@ function icon(name) {
 
 async function loadProfileExtras() {
   if (!authState.user) return;
-  // Avatar photo isn't always on the cached auth user; the unread count
-  // powers the Messages badge. Failures are silent by design.
+  // Loads the avatar and unread count; failures are non-blocking
   try {
     const { data } = await getProfile();
     if (data?.user?.profileImage) profileImage.value = data.user.profileImage;

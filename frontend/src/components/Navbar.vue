@@ -20,13 +20,11 @@
       </router-link>
     </div>
 
-    <!-- RIGHT: primary navigation + action rail.
-         Stays inline on the navbar; only collapses behind the toggle when
-         the viewport (or browser zoom) makes it too narrow to fit. -->
+    <!-- Primary navigation and action rail. Collapses behind the toggle
+         when the viewport is too narrow. -->
     <div class="navbar-right" :class="{ 'navbar-right-open': mobileOpen }">
       <div class="nav-primary">
-        <!-- Single buttons first: Home, then Dashboard, adjacent to each
-             other. All dropdown menus follow sequentially after them. -->
+        <!-- Single links first, then the dropdown menus -->
         <router-link to="/" class="nav-item" @click="closeAll">Home</router-link>
         <router-link
           v-if="authState.user?.role === 'farmer'"
@@ -54,6 +52,7 @@
               <router-link to="/farm-records" @click="closeAll">Farm Records</router-link>
               <router-link to="/financial-analysis" @click="closeAll">Financial Analysis</router-link>
               <router-link to="/expense-management" @click="closeAll">Manage Expenses</router-link>
+              <router-link to="/price-planner" @click="closeAll">Price Planner</router-link>
               <router-link to="/seasonal-performance" @click="closeAll">Seasonal Performance</router-link>
               <router-link to="/timeline" @click="closeAll">Activity Timeline</router-link>
             </div>
@@ -184,6 +183,7 @@
           <div v-if="openMenu === 'explore'" class="nav-dropdown-menu">
             <router-link to="/experts" @click="closeAll">Agricultural Experts</router-link>
             <router-link to="/organizations" @click="closeAll">Organizations</router-link>
+            <router-link to="/community" @click="closeAll">Community Hub</router-link>
             <router-link to="/map" @click="closeAll">Services Map</router-link>
             <router-link to="/get-weather" @click="closeAll">Weather</router-link>
           </div>
@@ -297,8 +297,7 @@
       </div>
     </div>
 
-    <!-- Collapse toggle — only appears when the rail can't fit (narrow
-         viewport or high browser zoom). -->
+    <!-- Collapse toggle, shown when the rail cannot fit -->
     <button
       type="button"
       class="navbar-toggle"
@@ -319,7 +318,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { authState, logout } from '../stores/auth';
 import { openDrawer } from '../stores/ui';
@@ -366,12 +365,29 @@ useClickOutside(navRef, () => {
   openMenu.value = null;
 });
 
+// The navbar stays mounted for the whole session, so these watchers keep the
+// avatar in step with photo changes made elsewhere in the app.
+watch(
+  () => authState.user?.profileImage,
+  (value) => {
+    profileImage.value = value || '';
+  }
+);
+// Switching accounts clears the avatar first, then loads the new user's photo
+watch(
+  () => authState.token,
+  () => {
+    profileImage.value = '';
+    if (authState.user) loadPhoto();
+  }
+);
+
 onMounted(() => {
   if (authState.user) {
     loadNotifications();
     loadUnreadMessages();
     loadPhoto();
-    // Light polling keeps the message badge fresh without a socket layer.
+    // Polling keeps the message badge fresh
     if (canMessage.value) {
       messagePoll = setInterval(loadUnreadMessages, 15000);
     }

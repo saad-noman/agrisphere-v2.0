@@ -133,10 +133,8 @@ const suggestions = [
   'Where can I see my consultations and appointments?',
 ];
 
-// The widget is mounted once at the app root, so without this it would keep
-// showing one user's conversation after a different user logs in on the same
-// browser. A fresh token (login, logout, or switching accounts) means a
-// fresh chat.
+// The widget is mounted once at the app root, so the chat is reset
+// whenever the signed-in user changes.
 watch(
   () => authState.token,
   () => {
@@ -151,12 +149,7 @@ function toggle() {
   open.value = !open.value;
 }
 
-// --- Markdown formatting for assistant replies ---------------------------
-// The LLM writes plain markdown (paragraphs, **bold**/*italics*, "- "/"1. "
-// lists, headings, code, links). `marked` turns that into real HTML and
-// DOMPurify strips anything unsafe before it's injected via v-html, so a
-// reply never shows raw markdown characters (e.g. "*bolded text*") and can
-// never carry a script/HTML injection through from the model.
+// Renders assistant markdown to HTML, sanitized before it reaches v-html
 marked.setOptions({ gfm: true, breaks: true });
 
 let hooksInstalled = false;

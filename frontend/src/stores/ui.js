@@ -1,10 +1,7 @@
 import { reactive } from 'vue';
 
-// Shared UI state that a couple of unrelated components need to agree on.
-// Right now that's just the left navigation drawer: the trigger lives in the
-// Navbar (next to the logo) while the drawer itself is mounted at the app
-// root, so they coordinate through this small reactive store instead of a
-// tangle of props/emits.
+// Shared UI state. The drawer trigger and the drawer itself live in
+// different components, so they coordinate through this store.
 export const uiState = reactive({
   drawerOpen: false,
 });

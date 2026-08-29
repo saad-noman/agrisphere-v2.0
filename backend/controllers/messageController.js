@@ -150,10 +150,15 @@ const getMessages = async (req, res) => {
     const { conversation, error, message } = await loadAuthorizedConversation(req.params.id, req.user._id);
     if (error) return res.status(error).json({ message });
 
-    const messages = await Message.find({ conversation: conversation._id })
+    const raw = await Message.find({ conversation: conversation._id })
       .sort({ createdAt: 1 })
       .limit(500)
       .lean();
+
+    // Removed messages keep their place without exposing the original text
+    const messages = raw.map((m) =>
+      m.deleted ? { ...m, text: '', deleted: true } : m
+    );
 
     await Message.updateMany(
       { conversation: conversation._id, sender: { $ne: req.user._id }, read: false },
@@ -213,6 +218,50 @@ const sendMessage = async (req, res) => {
   }
 };
 
+// DELETE /api/messages/messages/:messageId
+// To remove one of the current user's own messages (soft delete)
+const deleteMessage = async (req, res) => {
+  try {
+    const { messageId } = req.params;
+    if (!mongoose.isValidObjectId(messageId)) {
+      return res.status(400).json({ message: 'Invalid message id' });
+    }
+
+    const msg = await Message.findById(messageId);
+    if (!msg) return res.status(404).json({ message: 'Message not found' });
+
+    // Only the sender may remove their own message.
+    if (msg.sender.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'You can only delete your own messages' });
+    }
+
+    const conversation = await Conversation.findById(msg.conversation);
+    if (!conversation || !isParticipant(conversation, req.user._id)) {
+      return res.status(403).json({ message: 'Not authorized for this conversation' });
+    }
+
+    if (!msg.deleted) {
+      msg.deleted = true;
+      msg.deletedAt = new Date();
+      msg.text = '';
+      await msg.save();
+
+      // Refresh the preview if this was the last message
+      const latest = await Message.findOne({ conversation: conversation._id })
+        .sort({ createdAt: -1 })
+        .lean();
+      if (latest && latest._id.toString() === msg._id.toString()) {
+        conversation.lastMessage = 'Message removed';
+        await conversation.save();
+      }
+    }
+
+    res.json({ _id: msg._id, deleted: true, deletedAt: msg.deletedAt, text: '' });
+  } catch (err) {
+    sendError(res, 500, 'Failed to delete message', err);
+  }
+};
+
 // GET /api/messages/unread-count
 // To get the current user's total unread message count for the navbar badge
 const getUnreadCount = async (req, res) => {
@@ -238,5 +287,6 @@ module.exports = {
   listConversations,
   getMessages,
   sendMessage,
+  deleteMessage,
   getUnreadCount,
 };

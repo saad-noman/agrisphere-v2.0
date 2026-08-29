@@ -2,13 +2,9 @@ const llm = require('../services/llmService');
 const { retrievePublicContext, PLATFORM_ROUTES } = require('../services/aiRetrievalService');
 const sendError = require('../utils/sendError');
 
-// To build the JSON-only prompt that asks the LLM to semantically classify
-// the user's message: is it in scope, what AgriSphere data (if any) is
-// worth retrieving, and which of the real platform routes (if any) are
-// relevant. This replaces keyword/regex intent detection — the model reads
-// the message for meaning, not for specific words. The route list is the
-// live PLATFORM_ROUTES data, so the model can only ever pick a route that
-// actually exists; anything it returns is still re-validated in `chat()`.
+// Builds the JSON-only prompt asking the LLM to classify a message: whether
+// it is in scope, what data to retrieve, and which routes are relevant.
+// Routes come from PLATFORM_ROUTES and are re-validated in `chat()`.
 function buildClassifierPrompt() {
   const routeLines = PLATFORM_ROUTES.map((r) => `${r.link} — ${r.label}`).join('\n');
   return [
@@ -31,10 +27,8 @@ function buildClassifierPrompt() {
   ].join('\n');
 }
 
-// Safe defaults used whenever classification isn't available (LLM down, or
-// the classification call itself failed) — search broadly rather than
-// guessing nothing is relevant, and let the final answer's own system
-// prompt decide whether the request is in scope.
+// Defaults used when classification is unavailable: search broadly rather
+// than assuming nothing is relevant.
 const DEFAULT_INTENT = {
   inScope: true,
   needsExperts: true,
@@ -43,14 +37,11 @@ const DEFAULT_INTENT = {
   topRated: false,
   listAll: false,
   searchQuery: '',
-  routes: null, // null signals "no classification" so the caller falls back to a default route set
+  routes: null,
 };
 
-// To ask the LLM what the user's message actually means: in scope or not,
-// what AgriSphere data (if any) it needs, and which real routes (if any)
-// are relevant. Falls back to DEFAULT_INTENT if the LLM is unreachable or
-// returns something unusable — the rest of the pipeline degrades gracefully
-// either way.
+// Classifies a message with the LLM. Falls back to DEFAULT_INTENT when the
+// provider is unreachable or returns something unusable.
 async function classifyIntent(message, history) {
   if (!llm.isConfigured()) return { ...DEFAULT_INTENT };
   try {
@@ -167,12 +158,8 @@ function buildFallbackReply(message, results, routes) {
 }
 
 // POST /api/assistant/chat
-// To answer a chat message sent to the AI assistant. Flow: the LLM
-// semantically classifies what the message needs (in/out of scope, which
-// AgriSphere data to retrieve, which real routes are relevant) → the
-// backend retrieves and validates that data → the LLM generates the final
-// grounded reply → the backend sanitizes it. No keyword/regex lists decide
-// scope, retrieval, or navigation — the model reads for meaning.
+// Answers a chat message: the LLM classifies the request, the backend
+// retrieves and validates the data, then the LLM writes the grounded reply.
 const chat = async (req, res) => {
   try {
     const message = (req.body?.message || '').toString().trim();

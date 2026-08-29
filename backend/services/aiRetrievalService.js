@@ -133,13 +133,9 @@ async function searchDiseaseLibrary(term, limit = 4) {
   }));
 }
 
-// To gather public experts/organizations/diseases matching the assistant's query.
-// `intent` is supplied by the LLM's semantic classification of the message
-// (see assistantController.classifyIntent) — which entity types are worth
-// searching, whether to prefer top-rated results, and what search phrase to
-// use. When no intent is given (e.g. the LLM/classifier is unavailable) this
-// falls back to searching every entity type with the raw query, which is the
-// same safe-but-broad behavior used before semantic classification existed.
+// Gathers public experts, organizations and diseases matching the query.
+// `intent` comes from the assistant's classification step; without it every
+// entity type is searched with the raw query.
 async function retrievePublicContext(query, intent = {}) {
   const {
     needsExperts = true,

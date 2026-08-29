@@ -7,6 +7,7 @@ const {
   listConversations,
   getMessages,
   sendMessage,
+  deleteMessage,
   getUnreadCount,
 } = require('../controllers/messageController');
 
@@ -16,5 +17,6 @@ router.get('/conversations', protect, listConversations);
 router.post('/conversations', protect, startConversation);
 router.get('/conversations/:id/messages', protect, getMessages);
 router.post('/conversations/:id/messages', protect, sendMessage);
+router.delete('/messages/:messageId', protect, deleteMessage);
 
 module.exports = router;

@@ -1,11 +1,6 @@
 import { reactive } from 'vue';
 
-// Drop-in, promise-based replacement for window.confirm().
-//
-//   if (!(await confirmAction({ message: 'Delete this crop?' }))) return;
-//
-// The call resolves to true/false exactly like window.confirm did, so the
-// existing action logic around each call site stays unchanged.
+// Promise-based confirmation dialog. Resolves true when confirmed.
 export const confirmState = reactive({
   open: false,
   title: 'Are you sure?',
@@ -18,8 +13,7 @@ export const confirmState = reactive({
 let resolver = null;
 
 export function confirmAction(options = {}) {
-  // If a dialog is somehow already open, resolve it as cancelled first so we
-  // never leave a dangling promise.
+  // Cancel any dialog still open so no promise is left dangling
   if (resolver) resolveConfirm(false);
 
   confirmState.title = options.title || 'Are you sure?';

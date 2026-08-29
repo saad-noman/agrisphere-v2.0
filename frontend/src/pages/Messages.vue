@@ -99,15 +99,30 @@
             <p v-else-if="messages.length === 0" class="empty-state">
               Say hello 👋 — start the conversation.
             </p>
+            <p v-if="error" class="app-alert app-alert-danger mb-2">{{ error }}</p>
             <div
               v-for="m in messages"
               :key="m._id"
               class="msg-bubble-row"
               :class="isMine(m) ? 'msg-mine' : 'msg-theirs'"
             >
-              <div class="msg-bubble">
-                <span class="msg-text">{{ m.text }}</span>
-                <span class="msg-time">{{ shortTime(m.createdAt) }}</span>
+              <div class="msg-bubble" :class="{ 'msg-bubble-removed': m.deleted }">
+                <span v-if="m.deleted" class="msg-text msg-text-removed">Message removed</span>
+                <span v-else class="msg-text">{{ m.text }}</span>
+                <span class="msg-time">{{ messageTime(m.createdAt) }}</span>
+                <button
+                  v-if="isMine(m) && !m.deleted"
+                  type="button"
+                  class="msg-delete-btn"
+                  title="Remove message"
+                  aria-label="Remove message"
+                  @click="removeMessage(m)"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -178,7 +193,9 @@ import {
   sendMessage,
   startConversation,
   getEligibleExperts,
+  deleteMessage,
 } from '../services/messageService';
+import { confirmDelete } from '../stores/confirm';
 
 const route = useRoute();
 const router = useRouter();
@@ -188,6 +205,7 @@ const active = ref(null);
 const activeId = ref(null);
 const messages = ref([]);
 const draft = ref('');
+const error = ref('');
 
 const loadingConversations = ref(true);
 const loadingMessages = ref(false);
@@ -237,14 +255,40 @@ function initials(name) {
   return name.split(' ').map((n) => n[0]).slice(0, 2).join('').toUpperCase();
 }
 
+// Shows date and time for every message, in the viewer's local timezone
+function messageTime(d) {
+  if (!d) return '';
+  const date = new Date(d);
+  if (Number.isNaN(date.getTime())) return '';
+  const day = date.toLocaleDateString([], { day: 'numeric', month: 'short' });
+  const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return `${day}, ${time}`;
+}
+
+// Compact stamp for the conversation list
 function shortTime(d) {
   if (!d) return '';
   const date = new Date(d);
-  const now = new Date();
-  const sameDay = date.toDateString() === now.toDateString();
+  if (Number.isNaN(date.getTime())) return '';
+  const sameDay = date.toDateString() === new Date().toDateString();
   return sameDay
     ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    : date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    : messageTime(d);
+}
+
+async function removeMessage(m) {
+  if (!(await confirmDelete('Remove this message? Its content will no longer be visible.'))) return;
+  try {
+    await deleteMessage(m._id);
+    // Keeps its place in the timeline without the original content
+    const target = messages.value.find((x) => x._id === m._id);
+    if (target) {
+      target.deleted = true;
+      target.text = '';
+    }
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Could not remove the message.';
+  }
 }
 
 function isMine(m) {
