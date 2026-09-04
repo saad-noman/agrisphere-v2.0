@@ -34,8 +34,8 @@
           <p v-if="expert.consultationMode"><strong>Consultation Mode:</strong> {{ expert.consultationMode }}</p>
           <p v-if="expert.phone"><strong>Phone:</strong> {{ expert.phone }}</p>
           <p v-if="expert.email"><strong>Email:</strong> {{ expert.email }}</p>
-          <p v-if="expert.district || expert.upazila">
-            <strong>Location:</strong> {{ expert.upazila }} {{ expert.district }}
+          <p v-if="formatAddress(expert.address)">
+            <strong>Location:</strong> {{ formatAddress(expert.address) }}
           </p>
           <p v-if="expert.address"><strong>Address:</strong> {{ expert.address }}</p>
 
@@ -111,6 +111,7 @@ import { getExpert } from '../services/expertService';
 import { authState } from '../stores/auth';
 import StarRating from '../components/StarRating.vue';
 import RatingSection from '../components/RatingSection.vue';
+import { formatAddress, formatShortAddress } from '../utils/address';
 
 const route = useRoute();
 const expert = ref(null);

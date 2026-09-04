@@ -44,7 +44,7 @@ const getRequests = async (req, res) => {
     }
 
     const requests = await FarmingExpertiseRequest.find(filter)
-      .populate('farmer', 'name email district upazila')
+      .populate('farmer', 'name email address')
       .populate('response.expert', 'name email')
       .sort({ createdAt: -1 });
 
@@ -91,7 +91,7 @@ const getStockImages = async (req, res) => {
 const getRequestById = async (req, res) => {
   try {
     const request = await FarmingExpertiseRequest.findById(req.params.id)
-      .populate('farmer', 'name email district upazila')
+      .populate('farmer', 'name email address')
       .populate('response.expert', 'name email');
 
     if (!request) {
@@ -156,7 +156,7 @@ const provideExpertise = async (req, res) => {
     });
 
     const populated = await FarmingExpertiseRequest.findById(id)
-      .populate('farmer', 'name email district upazila')
+      .populate('farmer', 'name email address')
       .populate('response.expert', 'name email');
 
     res.json({

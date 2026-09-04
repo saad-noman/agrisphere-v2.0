@@ -3,6 +3,7 @@ const path = require('path');
 const Organization = require('../models/Organization');
 const Rating = require('../models/Rating');
 const sendError = require('../utils/sendError');
+const { buildAddress } = require('../utils/address');
 
 
 const deleteUploadedFile = (imagePath) => {
@@ -18,6 +19,9 @@ const listOrganizations = async (req, res) => {
     const category = req.query.category;
     const district = req.query.district;
     const upazila = req.query.upazila;
+    const country = req.query.country;
+    const division = req.query.division;
+    const state = req.query.state;
     const sort = req.query.sort;
 
     const filter = {};
@@ -31,11 +35,23 @@ const listOrganizations = async (req, res) => {
     }
 
     if (district) {
-      filter.district = { $regex: district, $options: 'i' };
+      filter['address.district'] = { $regex: district, $options: 'i' };
     }
 
     if (upazila) {
-      filter.upazila = { $regex: upazila, $options: 'i' };
+      filter['address.upazila'] = { $regex: upazila, $options: 'i' };
+    }
+
+    if (country) {
+      filter['address.country'] = { $regex: country, $options: 'i' };
+    }
+
+    if (division) {
+      filter['address.division'] = { $regex: division, $options: 'i' };
+    }
+
+    if (state) {
+      filter['address.state'] = { $regex: state, $options: 'i' };
     }
 
     // Sort by rating when asked, otherwise alphabetically by name
@@ -87,6 +103,7 @@ const createOrganization = async (req, res) => {
 
     const organization = await Organization.create({
       ...req.body,
+      address: buildAddress(req.body),
       ownerId: req.user._id,
       photo: req.file ? `/uploads/${req.file.filename}` : undefined,
     });
@@ -114,9 +131,6 @@ const updateOrganization = async (req, res) => {
       name,
       category,
       description,
-      address,
-      district,
-      upazila,
       latitude,
       longitude,
       contactNumber,
@@ -130,9 +144,7 @@ const updateOrganization = async (req, res) => {
       name,
       category,
       description,
-      address,
-      district,
-      upazila,
+      address: buildAddress(req.body),
       latitude,
       longitude,
       contactNumber,

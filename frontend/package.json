@@ -9,12 +9,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@turf/turf": "^7.4.0",
     "axios": "^1.7.0",
     "bootstrap": "^5.3.0",
     "dompurify": "^3.4.14",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.8",
     "leaflet": "^1.9.4",
+    "leaflet-draw": "^1.0.4",
+    "leaflet.heat": "^0.2.0",
+    "leaflet.markercluster": "^1.5.3",
     "marked": "^18.0.11",
     "vue": "^3.4.0",
     "vue-router": "^4.3.0"

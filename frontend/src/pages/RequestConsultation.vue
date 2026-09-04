@@ -27,6 +27,22 @@
           <p v-if="selectedExpert" class="auth-switch" style="text-align: left; margin-top: 4px">
             Selected: {{ selectedExpert.fullName }}
           </p>
+
+          <div v-if="selectedExpert" class="consult-fee-box">
+            <span v-if="feeAmount > 0">
+              {{ t('fee.costsAmount', { amount: feeAmount }) }}
+              <em v-if="selectedExpert.consultationFeeNote"> — {{ selectedExpert.consultationFeeNote }}</em>
+            </span>
+            <span v-else>{{ t('fee.free') }}</span>
+            <span class="consult-fee-demo">{{ t('fee.demoNotice') }}</span>
+          </div>
+
+          <div v-if="balanceShortfall" class="app-alert app-alert-danger mt-2">
+            <p class="mb-2">
+              {{ t('fee.insufficient', { balance: balanceShortfall.balance, required: balanceShortfall.required }) }}
+            </p>
+            <router-link to="/wallet" class="btn-pill btn-pill-sm">{{ t('fee.addFunds') }}</router-link>
+          </div>
           <p v-if="selectedExpert?.availabilityStatus === 'unavailable'" class="error-text" style="margin-top: 4px">
             This expert is currently marked unavailable. You can still submit a request, but a response may be delayed.
           </p>
@@ -97,17 +113,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { searchExperts, getExpert } from '../services/expertService';
 import { createConsultationRequest, getMyRequests } from '../services/consultationService';
 import { useClickOutside } from '../composables/useClickOutside';
+import { t } from '../i18n';
 
 const route = useRoute();
 
 const expertSearch = ref('');
 const expertResults = ref([]);
 const selectedExpert = ref(null);
+const balanceShortfall = ref(null);
+
+// A fee only applies when the expert charges for consultations
+const feeAmount = computed(() => {
+  const expert = selectedExpert.value;
+  if (!expert) return 0;
+  if (expert.consultationFeeType !== 'paid') return 0;
+  return Number(expert.consultationFee) || 0;
+});
 const expertFieldRef = ref(null);
 useClickOutside(expertFieldRef, () => {
   expertResults.value = [];
@@ -203,13 +229,23 @@ async function handleSubmit() {
       attachment: form.value.attachment,
     });
 
+    balanceShortfall.value = null;
     submitSuccess.value = true;
     form.value = emptyForm();
     selectedExpert.value = null;
     expertSearch.value = '';
     await loadMyRequests();
   } catch (err) {
-    submitError.value = err.response?.data?.message || 'Could not submit request. Please try again.';
+    const body = err.response?.data;
+
+    // A paid consultation the wallet cannot cover: point the farmer at
+    // the wallet instead of showing a bare error.
+    if (body && body.error === 'insufficient_balance') {
+      balanceShortfall.value = { balance: body.balance, required: body.required };
+      submitError.value = '';
+    } else {
+      submitError.value = body?.message || 'Could not submit request. Please try again.';
+    }
   } finally {
     submitting.value = false;
   }

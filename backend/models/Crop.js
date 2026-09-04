@@ -43,6 +43,17 @@ const cropSchema = new mongoose.Schema(
       default: 'acre',
     },
 
+    // Optional field outline drawn on the map. Crops without one stay valid.
+    geoBoundary: {
+      type: {
+        type: String,
+        enum: ['Polygon'],
+      },
+      coordinates: {
+        type: [[[Number]]],
+      },
+    },
+
     plantingDate: {
       type: Date,
     },

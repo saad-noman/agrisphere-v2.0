@@ -2,6 +2,12 @@
 import { ref, computed, onMounted } from 'vue'
 import api from '../services/api'
 import { authState } from '../stores/auth'
+import ExpertDashboard from '../components/ExpertDashboard.vue'
+import OrganizationDashboard from '../components/OrganizationDashboard.vue'
+import AdminDashboard from '../components/AdminDashboard.vue'
+
+// The farmer dashboard is the default view
+const role = computed(() => authState.user?.role || 'farmer')
 
 const loading = ref(true)
 const error = ref('')
@@ -230,7 +236,13 @@ onMounted(loadDashboard)
 
 <template>
 
-  <div class="dashboard-container">
+  <!-- Non-farmer roles get their own dashboard; the farmer view below is
+       the original dashboard and is left untouched. -->
+  <ExpertDashboard v-if="role === 'expert'" />
+  <OrganizationDashboard v-else-if="role === 'organization_owner' || role === 'market'" />
+  <AdminDashboard v-else-if="role === 'admin'" />
+
+  <div v-else class="dashboard-container">
 
     <!-- Header -->
 

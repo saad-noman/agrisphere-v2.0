@@ -66,6 +66,15 @@
               </select>
             </div>
 
+            <div class="col-12">
+              <FieldBoundaryMap
+                :boundary="form.geoBoundary"
+                :area-unit="form.areaUnit"
+                @update:boundary="form.geoBoundary = $event"
+                @update:area="form.area = $event"
+              />
+            </div>
+
             <div class="col-md-3">
               <label class="form-label">Planting Date</label>
               <input
@@ -167,6 +176,7 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 
 import { confirmDelete } from '../stores/confirm';
+import FieldBoundaryMap from '../components/FieldBoundaryMap.vue';
 const API = 'http://localhost:5000/api';
 
 const token = localStorage.getItem('token');
@@ -190,6 +200,7 @@ const form = ref({
   expectedHarvestDate: '',
   location: '',
   notes: '',
+  geoBoundary: null,
 });
 
 async function loadCrops() {
@@ -215,6 +226,7 @@ async function createCrop() {
     expectedHarvestDate: '',
     location: '',
     notes: '',
+    geoBoundary: null,
   };
 
   loadCrops();

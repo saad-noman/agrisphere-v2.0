@@ -40,20 +40,7 @@
 
         <h6 class="page-title mt-4">Location</h6>
 
-        <div class="mb-3">
-          <label class="form-label">Address</label>
-          <input v-model="form.address" type="text" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">District</label>
-          <input v-model="form.district" type="text" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Upazila</label>
-          <input v-model="form.upazila" type="text" class="form-control" />
-        </div>
+        <AddressFields id-prefix="org" :address="form.address" @update:address="form.address = $event" />
 
         <div class="mb-3">
           <label class="form-label">Latitude</label>
@@ -110,6 +97,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { serverUrl } from '../services/api';
+import AddressFields from '../components/AddressFields.vue';
+import { emptyAddress, toAddressForm } from '../utils/address';
 import {
   createOrganization,
   updateOrganization,
@@ -126,9 +115,7 @@ const form = ref({
   photo: null,
   category: '',
   description: '',
-  address: '',
-  district: '',
-  upazila: '',
+  address: emptyAddress(),
   latitude: null,
   longitude: null,
   contactNumber: '',
@@ -150,9 +137,7 @@ onMounted(async () => {
   form.value.name = org.name || '';
   form.value.category = org.category || '';
   form.value.description = org.description || '';
-  form.value.address = org.address || '';
-  form.value.district = org.district || '';
-  form.value.upazila = org.upazila || '';
+  form.value.address = toAddressForm(org.address);
   form.value.latitude = org.latitude ?? null;
   form.value.longitude = org.longitude ?? null;
   form.value.contactNumber = org.contactNumber || '';

@@ -11,6 +11,9 @@ const consultationRequestSchema = new mongoose.Schema(
     preferredDate: { type: Date },
     consultationType: { type: String, enum: ['online', 'offline'] },
     attachment: { type: String },
+    // Fee actually charged at request time (0 for free consultations)
+    fee: { type: Number, default: 0, min: 0 },
+
     status: {
       type: String,
       enum: ['pending', 'approved', 'rejected', 'rescheduled', 'completed'],

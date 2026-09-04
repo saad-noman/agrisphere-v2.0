@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const addressSchema = require('./shared/addressSchema');
 
 const organizationSchema = new mongoose.Schema(
   {
@@ -7,9 +8,7 @@ const organizationSchema = new mongoose.Schema(
     photo: { type: String },
     category: { type: String },
     description: { type: String },
-    address: { type: String },
-    district: { type: String },
-    upazila: { type: String },
+    address: { type: addressSchema, default: () => ({}) },
     latitude: { type: Number },
     longitude: { type: Number },
     contactNumber: { type: String },

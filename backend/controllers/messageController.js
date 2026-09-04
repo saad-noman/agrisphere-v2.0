@@ -87,7 +87,7 @@ const getEligibleExperts = async (req, res) => {
     }
 
     const experts = await Expert.find({ userId: { $ne: null } })
-      .select('fullName specialization expertiseCategory district upazila profileImage userId availabilityStatus')
+      .select('fullName specialization expertiseCategory address profileImage userId availabilityStatus')
       .sort({ fullName: 1 })
       .lean();
 
@@ -133,20 +133,17 @@ const startConversation = async (req, res) => {
     const target = await User.findById(targetUserId).select('role').lean();
     if (!target) return res.status(404).json({ message: 'Recipient not found' });
 
-    // A conversation needs one expert, paired with a farmer or another expert
+    // Conversations are between farmers and experts, in any combination.
+    // Farmer-to-farmer is allowed so a marketplace buyer can contact a seller.
     const pairRoles = [req.user.role, target.role];
 
-    let hasExpert = false;
-    let hasFarmerOrExpert = false;
-
+    let bothAllowed = true;
     for (let i = 0; i < pairRoles.length; i++) {
       const role = pairRoles[i];
-
-      if (role === 'expert') hasExpert = true;
-      if (role === 'farmer' || role === 'expert') hasFarmerOrExpert = true;
+      if (role !== 'farmer' && role !== 'expert') bothAllowed = false;
     }
 
-    const validPair = hasExpert && hasFarmerOrExpert;
+    const validPair = bothAllowed;
     if (!validPair) {
       return res.status(403).json({ message: 'Messaging is available between farmers and experts' });
     }

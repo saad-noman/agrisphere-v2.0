@@ -58,6 +58,7 @@
 <script setup>
 import { ref, watch, nextTick, onUnmounted } from 'vue';
 import { confirmState, resolveConfirm } from '../stores/confirm';
+import { t } from '../i18n';
 
 // Single app-wide confirmation dialog driven by stores/confirm.js
 const dialogRef = ref(null);
@@ -67,8 +68,8 @@ let lastFocused = null;
 const visible = ref(false);
 const title = ref('');
 const message = ref('');
-const confirmText = ref('Confirm');
-const cancelText = ref('Cancel');
+const confirmText = ref(t('common.confirm'));
+const cancelText = ref(t('common.cancel'));
 const tone = ref('danger');
 
 const titleId = 'confirm-dialog-title';

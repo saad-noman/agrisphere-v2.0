@@ -90,6 +90,7 @@ const updateCrop = async (req, res) => {
     const updatable = [
       'name', 'cropType', 'variety', 'season', 'area', 'areaUnit',
       'plantingDate', 'expectedHarvestDate', 'location', 'notes', 'status',
+      'geoBoundary',
     ];
     for (const field of updatable) {
       if (field in req.body) crop[field] = req.body[field];

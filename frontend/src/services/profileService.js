@@ -23,3 +23,7 @@ export function deleteProfilePhoto() {
 export function deleteProfile() {
   return api.delete('/users/me');
 }
+
+export function changePassword(payload) {
+  return api.patch('/users/change-password', payload);
+}

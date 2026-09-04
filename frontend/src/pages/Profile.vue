@@ -47,15 +47,7 @@
           <input v-model="phone" type="text" class="form-control" />
         </div>
 
-        <div class="mb-3">
-          <label class="form-label">District</label>
-          <input v-model="district" type="text" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label">Upazila</label>
-          <input v-model="upazila" type="text" class="form-control" />
-        </div>
+        <AddressFields id-prefix="profile" :address="address" @update:address="address = $event" />
 
         <template v-if="authState.user?.role === 'expert'">
           <hr />
@@ -155,17 +147,32 @@
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Address</label>
-            <input v-model="address" type="text" class="form-control" />
-          </div>
-
-          <div class="mb-3">
             <label class="form-label">Availability</label>
             <select v-model="availabilityStatus" class="form-select">
               <option value="available">Available</option>
               <option value="unavailable">Unavailable</option>
             </select>
           </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="fee-type">{{ t('fee.consultationFee') }}</label>
+            <select id="fee-type" v-model="consultationFeeType" class="form-select">
+              <option value="free">{{ t('fee.free') }}</option>
+              <option value="paid">{{ t('fee.paid') }}</option>
+            </select>
+          </div>
+
+          <template v-if="consultationFeeType === 'paid'">
+            <div class="mb-3">
+              <label class="form-label" for="fee-amount">{{ t('fee.amount') }}</label>
+              <input id="fee-amount" v-model.number="consultationFee" type="number" min="0" step="1" class="form-control" />
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="fee-note">{{ t('fee.note') }}</label>
+              <input id="fee-note" v-model="consultationFeeNote" type="text" maxlength="160" class="form-control"
+                :placeholder="t('fee.notePlaceholder')" />
+            </div>
+          </template>
 
           <div class="mb-3">
             <label class="form-label">Latitude</label>
@@ -197,6 +204,20 @@
       <p v-if="deleteError" class="error-text">{{ deleteError }}</p>
     </div>
   </div>
+
+    <div v-if="authState.user?.role === 'farmer'" class="card mb-3">
+      <div class="card-body">
+        <h3 class="h5 mb-2">{{ t('marketplace.sellers') }}</h3>
+        <label class="d-flex align-items-center gap-2 mb-1">
+          <input v-model="isPublic" type="checkbox" @change="save" />
+          <span>{{ t('account.publicProfile') }}</span>
+        </label>
+        <p class="text-muted small mb-0">{{ t('account.publicProfileHint') }}</p>
+      </div>
+    </div>
+
+    <ChangePassword />
+
 </template>
 
 <script setup>
@@ -216,6 +237,10 @@ import { useClickOutside } from '../composables/useClickOutside';
 import StarRating from '../components/StarRating.vue';
 
 import { confirmDelete } from '../stores/confirm';
+import AddressFields from '../components/AddressFields.vue';
+import { emptyAddress, toAddressForm } from '../utils/address';
+import ChangePassword from '../components/ChangePassword.vue';
+import { t } from '../i18n';
 const router = useRouter();
 const deleteError = ref('');
 const organizationFieldRef = ref(null);
@@ -226,8 +251,7 @@ useClickOutside(organizationFieldRef, () => {
 const name = ref('');
 const email = ref('');
 const phone = ref('');
-const district = ref('');
-const upazila = ref('');
+const address = ref(emptyAddress());
 
 const profileImage = ref('');
 const photoUrl = computed(() => (profileImage.value ? serverUrl + profileImage.value : ''));
@@ -247,8 +271,11 @@ const organization = ref('');
 const organizationId = ref(null);
 const organizationResults = ref([]);
 const consultationMode = ref('both');
-const address = ref('');
 const availabilityStatus = ref('available');
+const consultationFeeType = ref('free');
+const consultationFee = ref(0);
+const consultationFeeNote = ref('');
+const isPublic = ref(false);
 const latitude = ref(null);
 const longitude = ref(null);
 const ratingAverage = ref(0);
@@ -266,8 +293,8 @@ onMounted(async () => {
     name.value = user.name;
     email.value = user.email;
     phone.value = user.phone || '';
-    district.value = user.district || '';
-    upazila.value = user.upazila || '';
+    address.value = toAddressForm(user.address);
+    isPublic.value = Boolean(user.isPublic);
     profileImage.value = user.profileImage || '';
 
     if (expert) {
@@ -282,7 +309,9 @@ onMounted(async () => {
       organization.value = expert.organization || '';
       organizationId.value = expert.organizationId || null;
       consultationMode.value = expert.consultationMode || 'both';
-      address.value = expert.address || '';
+      consultationFeeType.value = expert.consultationFeeType || 'free';
+      consultationFee.value = expert.consultationFee || 0;
+      consultationFeeNote.value = expert.consultationFeeNote || '';
       availabilityStatus.value = expert.availabilityStatus || 'available';
       latitude.value = expert.latitude ?? null;
       longitude.value = expert.longitude ?? null;
@@ -373,8 +402,7 @@ async function handleSubmit() {
     const response = await updateProfile({
       name: name.value,
       phone: phone.value,
-      district: district.value,
-      upazila: upazila.value,
+      address: address.value,
       specialization: specialization.value,
       expertiseCategory: expertiseCategory.value,
       qualification: qualification.value,
@@ -386,8 +414,11 @@ async function handleSubmit() {
       organization: organization.value,
       organizationId: organizationId.value,
       consultationMode: consultationMode.value,
-      address: address.value,
       availabilityStatus: availabilityStatus.value,
+      consultationFeeType: consultationFeeType.value,
+      consultationFee: consultationFee.value,
+      consultationFeeNote: consultationFeeNote.value,
+      isPublic: isPublic.value,
       latitude: latitude.value,
       longitude: longitude.value,
     });

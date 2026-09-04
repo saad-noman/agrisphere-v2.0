@@ -1,4 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
+import { authState } from '../stores/auth';
+import { t } from '../i18n';
 
 import Home from '../pages/Home.vue';
 import Login from '../pages/Login.vue';
@@ -39,6 +41,15 @@ import Messages from '../pages/Messages.vue';
 import PricePlanner from '../pages/PricePlanner.vue';
 import Community from '../pages/Community.vue';
 import CommunityPost from '../pages/CommunityPost.vue';
+import CropIntelligence from '../pages/CropIntelligence.vue';
+import NotFound from '../pages/NotFound.vue';
+import Marketplace from '../pages/Marketplace.vue';
+import FarmerPublicProfile from '../pages/FarmerPublicProfile.vue';
+import ListingDetail from '../pages/ListingDetail.vue';
+import Orders from '../pages/Orders.vue';
+import FieldMap from '../pages/FieldMap.vue';
+import FarmerDirectory from '../pages/FarmerDirectory.vue';
+import Wallet from '../pages/Wallet.vue';
 const routes = [
   { path: '/', name: 'Home', component: Home },
   { path: '/login', name: 'Login', component: Login },
@@ -66,6 +77,13 @@ const routes = [
   { path: '/farm-records', name: 'FarmRecords', component: FarmRecords },
   { path: '/expenses', name: 'Expenses', component: Expenses },
   { path: '/map', name: 'Map', component: Map },
+  { path: '/marketplace', name: 'Marketplace', component: Marketplace },
+  { path: '/marketplace/:id', name: 'ListingDetail', component: ListingDetail },
+  { path: '/orders', name: 'Orders', component: Orders, meta: { requiresAuth: true } },
+  { path: '/wallet', name: 'Wallet', component: Wallet, meta: { requiresAuth: true } },
+  { path: '/field-map', name: 'FieldMap', component: FieldMap, meta: { requiresAuth: true } },
+  { path: '/farmers', name: 'FarmerDirectory', component: FarmerDirectory },
+  { path: '/farmers/:id/public', name: 'FarmerPublicProfile', component: FarmerPublicProfile },
   { path: '/weather', name: 'Weather', component: Weather },
   { path: '/get-weather', name: 'GetWeather', component: GetWeather },
   { path: '/timeline', name: 'Timeline', component: Timeline },
@@ -74,12 +92,27 @@ const routes = [
   { path: '/financial-analysis', name: 'FinancialAnalysis', component: FinancialAnalysis, meta: { requiresAuth: true, role: 'farmer' } },
   { path: '/expense-management', name: 'ExpenseManagement', component: ExpenseManagement, meta: { requiresAuth: true, role: 'farmer' } },
   { path: '/seasonal-performance', name: 'SeasonalPerformance', component: SeasonalPerformance, meta: { requiresAuth: true, role: 'farmer' } },
-  { path: '/dashboard', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true, role: 'farmer' } },
+  { path: '/dashboard', name: 'Dashboard', component: Dashboard, meta: { requiresAuth: true } },
   { path: '/crop-analysis', name: 'CropAnalysis', component: CropAnalysis, meta: { requiresAuth: true } },
   { path: '/messages', name: 'Messages', component: Messages, meta: { requiresAuth: true } },
   { path: '/price-planner', name: 'PricePlanner', component: PricePlanner, meta: { requiresAuth: true } },
   { path: '/community', name: 'Community', component: Community },
   { path: '/community/:id', name: 'CommunityPost', component: CommunityPost },
+
+  {
+    path: '/crop-intelligence',
+    name: 'CropIntelligence',
+    component: CropIntelligence,
+    meta: { titleKey: 'intel.title' },
+  },
+
+  // Anything unmatched lands on a real page instead of a blank screen.
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: NotFound,
+    meta: { titleKey: 'notFound.title' },
+  },
 ];
 
 const router = createRouter({
@@ -93,6 +126,37 @@ const router = createRouter({
     }
     return { top: 0 };
   },
+});
+
+/**
+ * Route guard.
+ *
+ * Several routes already declared `meta.requiresAuth` and `meta.role`, but
+ * nothing enforced them — a signed-out visitor could open /dashboard and reach
+ * a page that immediately failed its own API calls. The guard turns that into
+ * a clean redirect, and preserves the intended destination so the user lands
+ * where they were going after logging in.
+ */
+router.beforeEach((to) => {
+  const isAuthenticated = !!authState.token;
+
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return { path: '/login', query: { redirect: to.fullPath } };
+  }
+
+  if (to.meta.role && authState.user?.role !== to.meta.role) {
+    // Signed in, but this area belongs to another role. Home is a safe landing
+    // spot for every role, so no one hits a dead end.
+    return { path: '/' };
+  }
+
+  return true;
+});
+
+// Keep the browser tab title in step with the page and the chosen language.
+router.afterEach((to) => {
+  const title = to.meta.titleKey ? t(to.meta.titleKey) : '';
+  document.title = title ? `${title} · AgriSphere` : 'AgriSphere';
 });
 
 export default router;

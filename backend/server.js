@@ -36,6 +36,14 @@ const ratingRoutes = require('./routes/ratingRoutes');
 const pricePlanRoutes = require('./routes/pricePlanRoutes');
 const communityRoutes = require('./routes/communityRoutes');
 const statsRoutes = require('./routes/statsRoutes');
+const cropIntelligenceRoutes = require('./routes/cropIntelligenceRoutes');
+const locationRoutes = require('./routes/locationRoutes');
+const roadHazardRoutes = require('./routes/roadHazardRoutes');
+const listingRoutes = require('./routes/listingRoutes');
+const diseaseHotspotRoutes = require('./routes/diseaseHotspotRoutes');
+const transactionRoutes = require('./routes/transactionRoutes');
+const farmerPublicRoutes = require('./routes/farmerPublicRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 
 const app = express();
 
@@ -105,6 +113,14 @@ app.use('/api/ratings', ratingRoutes);
 app.use('/api/price-plans', pricePlanRoutes);
 app.use('/api/community', communityRoutes);
 app.use('/api/stats', statsRoutes);
+app.use('/api/crop-intelligence', cropIntelligenceRoutes);
+app.use('/api/locations', locationRoutes);
+app.use('/api/road-hazards', roadHazardRoutes);
+app.use('/api/listings', listingRoutes);
+app.use('/api/disease-hotspots', diseaseHotspotRoutes);
+app.use('/api/transactions', transactionRoutes);
+app.use('/api/farmers', farmerPublicRoutes);
+app.use('/api/orders', orderRoutes);
 
 // Turns upload failures into clear client errors instead of generic 500s
 app.use((err, req, res, next) => {
