@@ -2,6 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import api, { serverUrl as apiBase } from '../services/api';
 import { authState } from '../stores/auth';
+import { formatAddress, formatShortAddress } from '../utils/address';
 
 const requests = ref([]);
 const selectedRequestId = ref(null);
@@ -306,7 +307,7 @@ onMounted(() => {
                   <p class="text-muted mb-0">
                     Farmer: <strong>{{ selectedRequest.farmer?.name || 'Farmer' }}</strong> 
                     ({{ selectedRequest.farmer?.email }})
-                    <span v-if="selectedRequest.farmer?.district"> | Location: {{ selectedRequest.farmer?.district }}, {{ selectedRequest.farmer?.upazila }}</span>
+                    <span v-if="formatShortAddress(selectedRequest.farmer?.address)"> | Location: {{ formatShortAddress(selectedRequest.farmer?.address) }}</span>
                   </p>
                 </div>
                 <span

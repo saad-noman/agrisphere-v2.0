@@ -36,9 +36,9 @@
           <span class="detail-info-label">Phone</span>
           <span class="detail-info-value">{{ user.phone }}</span>
         </div>
-        <div v-if="user.district || user.upazila" class="detail-info-item">
+        <div v-if="formatAddress(user.address)" class="detail-info-item">
           <span class="detail-info-label">Location</span>
-          <span class="detail-info-value">{{ user.upazila }} {{ user.district }}</span>
+          <span class="detail-info-value">{{ formatAddress(user.address) }}</span>
         </div>
         <div v-if="expert?.specialization" class="detail-info-item">
           <span class="detail-info-label">Specialization</span>
@@ -69,25 +69,24 @@
 </template>
 
 <script setup>
+import { t } from '../i18n';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { serverUrl } from '../services/api';
 import { getProfile } from '../services/profileService';
 import { authState, logout } from '../stores/auth';
 import StarRating from '../components/StarRating.vue';
+import { formatAddress, formatShortAddress } from '../utils/address';
 
 const router = useRouter();
 const user = ref(null);
 const expert = ref(null);
 const error = ref('');
 
-const ROLE_LABELS = {
-  farmer: 'Farmer',
-  expert: 'Agricultural Expert',
-  organization_owner: 'Organization Owner',
-  admin: 'Administrator',
-};
-const roleLabel = computed(() => ROLE_LABELS[user.value?.role] || user.value?.role || '');
+const roleLabel = computed(() => {
+  const role = user.value?.role;
+  return role ? t(`roles.${role}`) : '';
+});
 
 // Same destinations already used across the app's navbar, grouped by role.
 const COMMON_LINKS = [

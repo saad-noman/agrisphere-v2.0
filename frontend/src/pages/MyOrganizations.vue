@@ -16,7 +16,7 @@
             <img v-if="org.photo" :src="serverUrl + org.photo" alt="" class="org-thumb" />
             <span>
               <router-link :to="`/organizations/${org._id}`" class="plain-link">{{ org.name }}</router-link>
-              <span v-if="org.district"> — {{ org.district }}</span>
+              <span v-if="formatShortAddress(org.address)"> — {{ formatShortAddress(org.address) }}</span>
             </span>
           </span>
           <span>
@@ -42,6 +42,7 @@ import { getMyOrganizations, deleteOrganization } from '../services/organization
 import OrganizationSidebar from '../components/OrganizationSidebar.vue';
 
 import { confirmDelete } from '../stores/confirm';
+import { formatAddress, formatShortAddress } from '../utils/address';
 const organizations = ref([]);
 const deleteError = ref('');
 

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const addressSchema = require('./shared/addressSchema');
 
 const expertSchema = new mongoose.Schema(
   {
@@ -18,10 +19,14 @@ const expertSchema = new mongoose.Schema(
     consultationMode: { type: String, enum: ['online', 'offline', 'both'], default: 'both' },
     phone: { type: String },
     email: { type: String },
-    district: { type: String },
-    upazila: { type: String },
-    address: { type: String },
+    address: { type: addressSchema, default: () => ({}) },
     availabilityStatus: { type: String, enum: ['available', 'unavailable'], default: 'available' },
+
+    // Consultation pricing. A fee of 0 (or consultationFeeType 'free')
+    // means the expert consults for free.
+    consultationFeeType: { type: String, enum: ['free', 'paid'], default: 'free' },
+    consultationFee: { type: Number, default: 0, min: 0 },
+    consultationFeeNote: { type: String, trim: true, maxlength: 160, default: '' },
     latitude: { type: Number },
     longitude: { type: Number },
     ratingAverage: { type: Number, default: 0 },

@@ -3,7 +3,39 @@ const Appointment = require('../models/Appointment');
 const ConsultationRecord = require('../models/ConsultationRecord');
 const Expert = require('../models/Expert');
 const Notification = require('../models/Notification');
+const Transaction = require('../models/Transaction');
+const User = require('../models/User');
 const sendError = require('../utils/sendError');
+
+// Returns a paid consultation's fee to the farmer, once only.
+async function refundConsultationFee(request) {
+  const fee = Number(request.fee) || 0;
+  if (fee <= 0) return;
+
+  const alreadyRefunded = await Transaction.findOne({
+    reference: request._id,
+    type: 'consultation_refund',
+  }).lean();
+  if (alreadyRefunded) return;
+
+  const expert = await Expert.findById(request.expertId).select('userId').lean();
+
+  await User.findByIdAndUpdate(request.farmerId, { $inc: { walletBalance: fee } });
+  if (expert && expert.userId) {
+    await User.findByIdAndUpdate(expert.userId, { $inc: { walletBalance: -fee } });
+  }
+
+  await Transaction.create({
+    from: expert && expert.userId ? expert.userId : request.farmerId,
+    to: request.farmerId,
+    amount: fee,
+    type: 'consultation_refund',
+    reference: request._id,
+    referenceModel: 'ConsultationRequest',
+    status: 'refunded',
+    note: 'Consultation cancelled',
+  });
+}
 
 // Saves a notification for one user
 function notify(userId, message, link) {
@@ -37,6 +69,26 @@ const createRequest = async (req, res) => {
       requestedDate = preferredDate;
     }
 
+    // Paid consultations are settled from the demo wallet first. If the
+    // balance is short, nothing is created and the client shows "add funds".
+    const expert = await Expert.findById(expertId);
+    const fee = expert && expert.consultationFeeType === 'paid' ? Number(expert.consultationFee) || 0 : 0;
+
+    let farmer = null;
+    if (fee > 0) {
+      farmer = await User.findById(req.user._id);
+      if (!farmer) return res.status(404).json({ message: 'Farmer not found' });
+
+      if ((farmer.walletBalance || 0) < fee) {
+        return res.status(402).json({
+          error: 'insufficient_balance',
+          balance: farmer.walletBalance || 0,
+          required: fee,
+          message: 'Your demo wallet balance is not enough for this consultation',
+        });
+      }
+    }
+
     const request = await ConsultationRequest.create({
       farmerId: req.user._id,
       expertId,
@@ -47,10 +99,27 @@ const createRequest = async (req, res) => {
       consultationType,
       preferredDate: requestedDate,
       attachment,
+      fee,
     });
 
-    // Tell the expert a new request is waiting
-    const expert = await Expert.findById(expertId);
+    if (fee > 0 && farmer && expert.userId) {
+      farmer.walletBalance = (farmer.walletBalance || 0) - fee;
+      await farmer.save();
+
+      await User.findByIdAndUpdate(expert.userId, { $inc: { walletBalance: fee } });
+
+      await Transaction.create({
+        from: farmer._id,
+        to: expert.userId,
+        amount: fee,
+        type: 'consultation_payment',
+        reference: request._id,
+        referenceModel: 'ConsultationRequest',
+        status: 'completed',
+        note: `Consultation: ${title}`.slice(0, 200),
+      });
+    }
+
     if (expert && expert.userId) {
       await notify(expert.userId, `New consultation request: ${title}`, '/consultations/pending');
     }
@@ -84,7 +153,7 @@ const getPendingRequests = async (req, res) => {
     }
 
     const requests = await ConsultationRequest.find({ expertId: expert._id, status: 'pending' })
-      .populate('farmerId', 'name phone email district upazila')
+      .populate('farmerId', 'name phone email address')
       .sort({ createdAt: -1 });
     res.json(requests);
   } catch (err) {
@@ -159,6 +228,9 @@ const rejectRequest = async (req, res) => {
     if (request.status !== 'pending') {
       return res.status(400).json({ message: 'This request has already been handled' });
     }
+
+    // A rejected request returns the fee to the farmer's demo wallet
+    await refundConsultationFee(request);
 
     request.status = 'rejected';
     await request.save();

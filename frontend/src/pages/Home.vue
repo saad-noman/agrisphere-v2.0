@@ -2,35 +2,32 @@
   <div class="home">
     <section class="hero">
       <h1>{{ headline }}</h1>
-      <p>
-        Empowering farmers through community knowledge, smart technology,
-        and data-driven agriculture.
-      </p>
+      <p>{{ t('home.subtitle') }}</p>
 
       <div class="hero-actions" v-if="!authState.user">
-        <router-link to="/login" class="btn-pill-outline">Login</router-link>
-        <router-link to="/register" class="btn-pill">Get Started</router-link>
+        <router-link to="/login" class="btn-pill-outline">{{ t('nav.login') }}</router-link>
+        <router-link to="/register" class="btn-pill">{{ t('nav.getStarted') }}</router-link>
       </div>
 
       <div class="hero-actions" v-else-if="authState.user?.role === 'farmer'">
-        <router-link to="/dashboard" class="btn-pill">Go to Dashboard</router-link>
-        <router-link to="/disease-submission" class="btn-pill-outline">Submit Disease Case</router-link>
+        <router-link to="/dashboard" class="btn-pill">{{ t('home.goToDashboard') }}</router-link>
+        <router-link to="/crop-intelligence" class="btn-pill-outline">{{ t('nav.cropIntelligence') }}</router-link>
       </div>
 
       <div class="hero-actions" v-else-if="authState.user?.role === 'expert'">
-        <router-link to="/consultations/pending" class="btn-pill">Pending Requests</router-link>
-        <router-link to="/disease-library" class="btn-pill-outline">Disease Library</router-link>
+        <router-link to="/consultations/pending" class="btn-pill">{{ t('nav.pendingRequests') }}</router-link>
+        <router-link to="/disease-library" class="btn-pill-outline">{{ t('nav.diseaseLibrary') }}</router-link>
       </div>
 
       <div class="hero-actions" v-else-if="authState.user?.role === 'organization_owner'">
-        <router-link to="/organizations/mine" class="btn-pill">My Organizations</router-link>
-        <router-link to="/organizations/new" class="btn-pill-outline">Add Organization</router-link>
+        <router-link to="/organizations/mine" class="btn-pill">{{ t('nav.myOrganizations') }}</router-link>
+        <router-link to="/organizations/new" class="btn-pill-outline">{{ t('nav.addOrganization') }}</router-link>
       </div>
     </section>
 
-    <!-- Four core features promoted on the home page -->
+    <!-- Core features promoted on the home page -->
     <section class="core-features-section container">
-      <h2 class="quick-links-title">What you can do on AgriSphere</h2>
+      <h2 class="quick-links-title">{{ t('home.whatYouCanDo') }}</h2>
       <div class="core-features-grid">
         <router-link
           v-for="feature in coreFeatures"
@@ -71,52 +68,60 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { authState } from '../stores/auth';
 import { getPlatformStats } from '../services/statsService';
+import { t, n } from '../i18n';
 
 // Greets a signed-in user by first name, or the product headline for guests
 const headline = computed(() => {
   const first = authState.user?.name?.split(' ')[0];
-  return first ? `Hello, ${first}` : 'Welcome to AgriSphere';
+  return first ? t('home.greeting', { name: first }) : t('home.welcome');
 });
 
-// Core features promoted on the home page
-const coreFeatures = [
+// Core features promoted on the home page. Computed rather than a constant so
+// the labels re-render when the language changes.
+const coreFeatures = computed(() => [
+  {
+    to: '/crop-intelligence',
+    icon: '\u{1F33E}',
+    label: t('home.features.intelTitle'),
+    description: t('home.features.intelDesc'),
+  },
   {
     to: '/experts',
     icon: '\u{1F469}\u200D\u{1F33E}',
-    label: 'Consult with Experts',
-    description: 'Find agricultural experts and request a consultation.',
+    label: t('home.features.expertsTitle'),
+    description: t('home.features.expertsDesc'),
   },
   {
     to: '/organizations',
     icon: '\u{1F3E2}',
-    label: 'Find Agricultural Organization',
-    description: 'Browse organizations and services near you.',
+    label: t('home.features.orgTitle'),
+    description: t('home.features.orgDesc'),
   },
   {
     to: '/crop-analysis',
     icon: '\u{1F9EA}',
-    label: 'AI-Based Solution',
-    description: 'Detect crop diseases and get AI-driven guidance.',
+    label: t('home.features.aiTitle'),
+    description: t('home.features.aiDesc'),
   },
   {
     to: '/map',
     icon: '\u{1F5FA}\uFE0F',
-    label: 'Interactive Map',
-    description: 'Locate experts, organizations and services on the map.',
+    label: t('home.features.mapTitle'),
+    description: t('home.features.mapDesc'),
   },
   {
     to: '/community',
     icon: '\u{1F4AC}',
-    label: 'Community Knowledge Hub',
-    description: 'Ask questions and learn from farmers and experts.',
+    label: t('home.features.communityTitle'),
+    description: t('home.features.communityDesc'),
   },
   {
     to: '/price-planner',
     icon: '\u{1F9EE}',
-    label: 'Price Planner',
-    description: 'Cost out seeds, fertilizer and pesticides before you buy.',
+    label: t('home.features.priceTitle'),
+    description: t('home.features.priceDesc'),
   },
-];
+]);
 
 // Platform totals shown right below the quick-access cards. The displayed
 // numbers (statCards) count up from 0 to the fetched totals (targetCounts)
@@ -124,9 +129,13 @@ const coreFeatures = [
 const targetCounts = ref({ experts: 0, farmers: 0, organizations: 0 });
 const displayCounts = ref({ experts: 0, farmers: 0, organizations: 0 });
 const statCards = computed(() => [
-  { key: 'experts', label: 'Experts', value: displayCounts.value.experts },
-  { key: 'farmers', label: 'Farmers', value: displayCounts.value.farmers },
-  { key: 'organizations', label: 'Organizations', value: displayCounts.value.organizations },
+  { key: 'experts', label: t('home.stats.experts'), value: n(displayCounts.value.experts) },
+  { key: 'farmers', label: t('home.stats.farmers'), value: n(displayCounts.value.farmers) },
+  {
+    key: 'organizations',
+    label: t('home.stats.organizations'),
+    value: n(displayCounts.value.organizations),
+  },
 ]);
 
 const statsSectionRef = ref(null);

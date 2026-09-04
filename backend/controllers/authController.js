@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Expert = require('../models/Expert');
 const sendError = require('../utils/sendError');
+const { buildAddress } = require('../utils/address');
 
 const createToken = (user) => {
   return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
@@ -16,7 +17,8 @@ const PUBLIC_ROLES = ['farmer', 'expert', 'organization_owner'];
 // To register a new user account
 const register = async (req, res) => {
   try {
-    const { name, email, password, role, phone, district, upazila, specialization } = req.body;
+    const { name, email, password, role, phone, specialization } = req.body;
+    const address = buildAddress(req.body);
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email and password are required' });
@@ -38,8 +40,7 @@ const register = async (req, res) => {
       password: hashedPassword,
       role: role || 'farmer',
       phone,
-      district,
-      upazila,
+      address,
     });
 
     if (user.role === 'expert') {
@@ -48,8 +49,7 @@ const register = async (req, res) => {
         fullName: name,
         phone,
         email,
-        district,
-        upazila,
+        address,
         specialization,
       });
     }

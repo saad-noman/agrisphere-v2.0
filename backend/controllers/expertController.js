@@ -9,6 +9,9 @@ const listExperts = async (req, res) => {
     const specialization = req.query.specialization;
     const district = req.query.district;
     const upazila = req.query.upazila;
+    const country = req.query.country;
+    const division = req.query.division;
+    const state = req.query.state;
     const sort = req.query.sort;
 
     const filter = {};
@@ -26,11 +29,23 @@ const listExperts = async (req, res) => {
     }
 
     if (district) {
-      filter.district = { $regex: district, $options: 'i' };
+      filter['address.district'] = { $regex: district, $options: 'i' };
     }
 
     if (upazila) {
-      filter.upazila = { $regex: upazila, $options: 'i' };
+      filter['address.upazila'] = { $regex: upazila, $options: 'i' };
+    }
+
+    if (country) {
+      filter['address.country'] = { $regex: country, $options: 'i' };
+    }
+
+    if (division) {
+      filter['address.division'] = { $regex: division, $options: 'i' };
+    }
+
+    if (state) {
+      filter['address.state'] = { $regex: state, $options: 'i' };
     }
 
     // Sort by rating when asked, otherwise alphabetically by name

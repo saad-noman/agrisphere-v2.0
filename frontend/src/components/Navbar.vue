@@ -5,8 +5,8 @@
       <button
         type="button"
         class="nav-ghost-btn"
-        aria-label="Open account menu"
-        title="Account menu"
+        :aria-label="t('a11y.openAccountMenu')"
+        :title="t('a11y.accountMenu')"
         @click="openDrawer"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -16,7 +16,7 @@
       </button>
       <router-link to="/" class="logo" @click="closeAll">
         <span class="logo-mark">
-          <img src="/favicon.png" alt="AgriSphere Logo" />
+          <img src="/favicon.png" alt="AgriSphere" />
         </span>
         <span class="logo-text"><span class="agri">Agri</span><span class="sphere">Sphere</span></span>
       </router-link>
@@ -27,13 +27,13 @@
     <div class="navbar-right" :class="{ 'navbar-right-open': mobileOpen }">
       <div class="nav-primary">
         <!-- Single links first, then the dropdown menus -->
-        <router-link to="/" class="nav-item" @click="closeAll">Home</router-link>
+        <router-link to="/" class="nav-item" @click="closeAll">{{ t('nav.home') }}</router-link>
         <router-link
           v-if="authState.user?.role === 'farmer'"
           to="/dashboard"
           class="nav-item"
           @click="closeAll"
-        >Dashboard</router-link>
+        >{{ t('nav.dashboard') }}</router-link>
 
         <!-- FARMER -->
         <template v-if="authState.user?.role === 'farmer'">
@@ -44,19 +44,21 @@
               :class="{ 'nav-item-active': openMenu === 'farm' }"
               @click="toggleMenu('farm')"
             >
-              My Farm
+              {{ t('nav.myFarm') }}
               <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
             <div v-if="openMenu === 'farm'" class="nav-dropdown-menu">
-              <router-link to="/farm-records" @click="closeAll">Farm Records</router-link>
-              <router-link to="/financial-analysis" @click="closeAll">Financial Analysis</router-link>
-              <router-link to="/expense-management" @click="closeAll">Manage Expenses</router-link>
-              <router-link to="/price-planner" @click="closeAll">Price Planner</router-link>
-              <router-link to="/seasonal-performance" @click="closeAll">Seasonal Performance</router-link>
-              <router-link to="/timeline" @click="closeAll">Activity Timeline</router-link>
+              <router-link to="/farm-records" @click="closeAll">{{ t('nav.farmRecords') }}</router-link>
+              <router-link to="/financial-analysis" @click="closeAll">{{ t('nav.financialAnalysis') }}</router-link>
+              <router-link to="/expense-management" @click="closeAll">{{ t('nav.manageExpenses') }}</router-link>
+              <router-link to="/price-planner" @click="closeAll">{{ t('nav.pricePlanner') }}</router-link>
+              <router-link to="/orders" @click="closeAll">{{ t('market2.myOrders') }}</router-link>
+              <router-link to="/field-map" @click="closeAll">{{ t('fieldMap.title') }}</router-link>
+              <router-link to="/seasonal-performance" @click="closeAll">{{ t('nav.seasonalPerformance') }}</router-link>
+              <router-link to="/timeline" @click="closeAll">{{ t('nav.activityTimeline') }}</router-link>
             </div>
           </div>
 
@@ -67,18 +69,19 @@
               :class="{ 'nav-item-active': openMenu === 'cropcare' }"
               @click="toggleMenu('cropcare')"
             >
-              Crop Care
+              {{ t('nav.cropCare') }}
               <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
             <div v-if="openMenu === 'cropcare'" class="nav-dropdown-menu">
-              <router-link to="/farming-expertise/request" @click="closeAll">Farming Expertise</router-link>
-              <router-link to="/disease-submission" @click="closeAll">Submit Disease Case</router-link>
-              <router-link to="/crop-analysis" @click="closeAll">AI Crop Disease Analysis</router-link>
-              <router-link to="/diagnosis-history" @click="closeAll">Diagnosis History</router-link>
-              <router-link to="/farming-recommendation" @click="closeAll">Crop Recommendation</router-link>
+              <router-link to="/crop-intelligence" @click="closeAll">{{ t('nav.cropIntelligence') }}</router-link>
+              <router-link to="/farming-expertise/request" @click="closeAll">{{ t('nav.farmingExpertise') }}</router-link>
+              <router-link to="/disease-submission" @click="closeAll">{{ t('nav.submitDiseaseCase') }}</router-link>
+              <router-link to="/crop-analysis" @click="closeAll">{{ t('nav.cropDiseaseAnalysis') }}</router-link>
+              <router-link to="/diagnosis-history" @click="closeAll">{{ t('nav.diagnosisHistory') }}</router-link>
+              <router-link to="/farming-recommendation" @click="closeAll">{{ t('nav.cropRecommendation') }}</router-link>
             </div>
           </div>
 
@@ -89,15 +92,15 @@
               :class="{ 'nav-item-active': openMenu === 'consult' }"
               @click="toggleMenu('consult')"
             >
-              Consultation
+              {{ t('nav.consultation') }}
               <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
             <div v-if="openMenu === 'consult'" class="nav-dropdown-menu">
-              <router-link to="/consultations/request" @click="closeAll">Request Consultation</router-link>
-              <router-link to="/consultations" @click="closeAll">My Consultations</router-link>
+              <router-link to="/consultations/request" @click="closeAll">{{ t('nav.requestConsultation') }}</router-link>
+              <router-link to="/consultations" @click="closeAll">{{ t('nav.myConsultations') }}</router-link>
             </div>
           </div>
         </template>
@@ -111,19 +114,20 @@
               :class="{ 'nav-item-active': openMenu === 'expertise' }"
               @click="toggleMenu('expertise')"
             >
-              Expertise
+              {{ t('nav.expertise') }}
               <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
             <div v-if="openMenu === 'expertise'" class="nav-dropdown-menu">
-              <router-link to="/farming-expertise/provide" @click="closeAll">Provide Farming Expertise</router-link>
-              <router-link to="/provide-crop-diagnosis-report" @click="closeAll">Provide Diagnosis Report</router-link>
-              <router-link to="/crop-analysis" @click="closeAll">AI Crop Disease Analysis</router-link>
-              <router-link to="/disease-library" @click="closeAll">Disease Library</router-link>
-              <router-link to="/tag-management" @click="closeAll">Tag Management</router-link>
-              <router-link to="/farming-recommendation" @click="closeAll">Crop Recommendation</router-link>
+              <router-link to="/crop-intelligence" @click="closeAll">{{ t('nav.cropIntelligence') }}</router-link>
+              <router-link to="/farming-expertise/provide" @click="closeAll">{{ t('nav.provideFarmingExpertise') }}</router-link>
+              <router-link to="/provide-crop-diagnosis-report" @click="closeAll">{{ t('nav.provideDiagnosisReport') }}</router-link>
+              <router-link to="/crop-analysis" @click="closeAll">{{ t('nav.cropDiseaseAnalysis') }}</router-link>
+              <router-link to="/disease-library" @click="closeAll">{{ t('nav.diseaseLibrary') }}</router-link>
+              <router-link to="/tag-management" @click="closeAll">{{ t('nav.tagManagement') }}</router-link>
+              <router-link to="/farming-recommendation" @click="closeAll">{{ t('nav.cropRecommendation') }}</router-link>
             </div>
           </div>
 
@@ -134,15 +138,15 @@
               :class="{ 'nav-item-active': openMenu === 'consult' }"
               @click="toggleMenu('consult')"
             >
-              Consultation
+              {{ t('nav.consultation') }}
               <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
             <div v-if="openMenu === 'consult'" class="nav-dropdown-menu">
-              <router-link to="/consultations/pending" @click="closeAll">Pending Requests</router-link>
-              <router-link to="/consultations/records" @click="closeAll">Consultation Record</router-link>
+              <router-link to="/consultations/pending" @click="closeAll">{{ t('nav.pendingRequests') }}</router-link>
+              <router-link to="/consultations/records" @click="closeAll">{{ t('nav.consultationRecord') }}</router-link>
             </div>
           </div>
         </template>
@@ -156,15 +160,15 @@
               :class="{ 'nav-item-active': openMenu === 'myorgs' }"
               @click="toggleMenu('myorgs')"
             >
-              My Organizations
+              {{ t('nav.myOrganizations') }}
               <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                 stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </button>
             <div v-if="openMenu === 'myorgs'" class="nav-dropdown-menu">
-              <router-link to="/organizations/mine" @click="closeAll">My Organizations</router-link>
-              <router-link to="/organizations/new" @click="closeAll">Add Organization</router-link>
+              <router-link to="/organizations/mine" @click="closeAll">{{ t('nav.myOrganizations') }}</router-link>
+              <router-link to="/organizations/new" @click="closeAll">{{ t('nav.addOrganization') }}</router-link>
             </div>
           </div>
         </template>
@@ -176,18 +180,21 @@
             :class="{ 'nav-item-active': openMenu === 'explore' }"
             @click="toggleMenu('explore')"
           >
-            Explore
+            {{ t('nav.explore') }}
             <svg class="nav-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="m6 9 6 6 6-6" />
             </svg>
           </button>
           <div v-if="openMenu === 'explore'" class="nav-dropdown-menu">
-            <router-link to="/experts" @click="closeAll">Agricultural Experts</router-link>
-            <router-link to="/organizations" @click="closeAll">Organizations</router-link>
-            <router-link to="/community" @click="closeAll">Community Hub</router-link>
-            <router-link to="/map" @click="closeAll">Services Map</router-link>
-            <router-link to="/get-weather" @click="closeAll">Weather</router-link>
+            <router-link to="/experts" @click="closeAll">{{ t('nav.experts') }}</router-link>
+            <router-link to="/organizations" @click="closeAll">{{ t('nav.organizations') }}</router-link>
+            <router-link to="/community" @click="closeAll">{{ t('nav.community') }}</router-link>
+            <router-link to="/map" @click="closeAll">{{ t('nav.servicesMap') }}</router-link>
+            <router-link to="/marketplace" @click="closeAll">{{ t('nav.marketplace') }}</router-link>
+            <router-link to="/farmers" @click="closeAll">{{ t('farmerDir.title') }}</router-link>
+            <router-link to="/get-weather" @click="closeAll">{{ t('nav.weather') }}</router-link>
+            <router-link to="/crop-intelligence" @click="closeAll">{{ t('nav.cropIntelligence') }}</router-link>
           </div>
         </div>
       </div>
@@ -196,12 +203,49 @@
       <div class="nav-actions">
         <span class="nav-divider" aria-hidden="true"></span>
 
+        <!-- Language switch. Placed beside the theme control so both
+             appearance settings live in one predictable place. -->
+        <div class="nav-dropdown">
+          <button
+            type="button"
+            class="nav-ghost-btn nav-lang-btn"
+            :class="{ 'nav-item-active': openMenu === 'lang' }"
+            :title="t('a11y.changeLanguage')"
+            :aria-label="t('a11y.changeLanguage')"
+            :aria-expanded="openMenu === 'lang'"
+            @click="toggleMenu('lang')"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M3 12h18M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18Z" />
+            </svg>
+            <span class="nav-lang-code">{{ activeLocaleShort }}</span>
+          </button>
+          <div v-if="openMenu === 'lang'" class="nav-dropdown-menu nav-dropdown-menu-end">
+            <p class="nav-menu-heading">{{ t('language.label') }}</p>
+            <a
+              v-for="option in SUPPORTED_LOCALES"
+              :key="option.code"
+              href="#"
+              class="nav-lang-option"
+              :class="{ 'nav-lang-active': currentLocale === option.code }"
+              :aria-current="currentLocale === option.code ? 'true' : undefined"
+              @click.prevent="chooseLocale(option.code)"
+            >
+              {{ option.nativeLabel }}
+              <span v-if="currentLocale === option.code" class="nav-lang-tick" aria-hidden="true">✓</span>
+            </a>
+            <p class="nav-menu-hint">{{ t('language.hint') }}</p>
+          </div>
+        </div>
+
         <!-- Theme switch -->
         <button
           type="button"
           class="nav-ghost-btn"
-          :title="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
-          :aria-label="isDark ? 'Switch to light theme' : 'Switch to dark theme'"
+          :title="isDark ? t('a11y.lightTheme') : t('a11y.darkTheme')"
+          :aria-label="isDark ? t('a11y.lightTheme') : t('a11y.darkTheme')"
           @click="toggleTheme"
         >
           <svg v-if="isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
@@ -220,8 +264,8 @@
           v-if="canMessage"
           to="/messages"
           class="nav-ghost-btn nav-badge-host"
-          title="Messages"
-          aria-label="Messages"
+          :title="t('a11y.messages')"
+          :aria-label="t('a11y.messages')"
           @click="closeAll"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
@@ -236,8 +280,8 @@
           <button
             type="button"
             class="nav-ghost-btn nav-badge-host"
-            title="Notifications"
-            aria-label="Notifications"
+            :title="t('a11y.notifications')"
+            :aria-label="t('a11y.notifications')"
             @click="toggleMenu('notif')"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
@@ -248,8 +292,8 @@
             <span v-if="unreadCount" class="nav-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
           </button>
           <div v-if="openMenu === 'notif'" class="nav-dropdown-menu nav-dropdown-menu-end notif-menu">
-            <p class="nav-menu-heading">Notifications</p>
-            <p v-if="notifications.length === 0" class="notif-empty">You're all caught up.</p>
+            <p class="nav-menu-heading">{{ t('notifications.title') }}</p>
+            <p v-if="notifications.length === 0" class="notif-empty">{{ t('notifications.empty') }}</p>
             <a
               v-for="n in notifications"
               :key="n._id"
@@ -268,7 +312,7 @@
             type="button"
             class="nav-account-btn"
             :class="{ 'nav-item-active': openMenu === 'account' }"
-            aria-label="Account menu"
+            :aria-label="t('a11y.accountMenu')"
             @click="toggleMenu('account')"
           >
             <span class="nav-avatar">
@@ -286,15 +330,17 @@
               <div class="nav-menu-user-name">{{ authState.user.name }}</div>
               <div class="nav-menu-user-role">{{ roleLabel }}</div>
             </div>
-            <router-link to="/profile-dashboard" @click="closeAll">My Profile</router-link>
-            <router-link to="/profile" @click="closeAll">Edit Profile</router-link>
-            <a href="#" class="nav-menu-danger" @click.prevent="handleLogout">Logout</a>
+            <router-link to="/orders" @click="closeAll">{{ t('market2.myOrders') }}</router-link>
+            <router-link to="/wallet" @click="closeAll">{{ t('wallet.title') }}</router-link>
+            <router-link to="/profile-dashboard" @click="closeAll">{{ t('nav.myProfile') }}</router-link>
+            <router-link to="/profile" @click="closeAll">{{ t('nav.editProfile') }}</router-link>
+            <a href="#" class="nav-menu-danger" @click.prevent="handleLogout">{{ t('nav.logout') }}</a>
           </div>
         </div>
 
         <template v-else>
-          <router-link to="/login" class="btn-pill-outline btn-pill-sm" @click="closeAll">Login</router-link>
-          <router-link to="/register" class="btn-pill btn-pill-sm" @click="closeAll">Register</router-link>
+          <router-link to="/login" class="btn-pill-outline btn-pill-sm" @click="closeAll">{{ t('nav.login') }}</router-link>
+          <router-link to="/register" class="btn-pill btn-pill-sm" @click="closeAll">{{ t('nav.register') }}</router-link>
         </template>
       </div>
     </div>
@@ -304,7 +350,7 @@
       type="button"
       class="navbar-toggle"
       :aria-expanded="mobileOpen"
-      aria-label="Toggle navigation"
+      :aria-label="t('a11y.toggleNavigation')"
       @click="toggleMobile"
     >
       <svg v-if="!mobileOpen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -325,6 +371,7 @@ import { useRouter } from 'vue-router';
 import { authState, logout } from '../stores/auth';
 import { openDrawer } from '../stores/ui';
 import { isDark, toggleTheme } from '../stores/theme';
+import { t, setLocale, currentLocale, SUPPORTED_LOCALES } from '../i18n';
 import { getNotifications, markNotificationRead } from '../services/notificationService';
 import { getUnreadCount } from '../services/messageService';
 import { getProfile } from '../services/profileService';
@@ -342,6 +389,15 @@ const profileImage = ref(authState.user?.profileImage || '');
 let messagePoll = null;
 
 const firstName = computed(() => authState.user?.name?.split(' ')[0] || '');
+
+const activeLocaleShort = computed(
+  () => SUPPORTED_LOCALES.find((l) => l.code === currentLocale.value)?.shortLabel || 'EN'
+);
+
+function chooseLocale(code) {
+  setLocale(code);
+  closeAll();
+}
 const photoUrl = computed(() => (profileImage.value ? serverUrl + profileImage.value : ''));
 const initials = computed(() => {
   const parts = (authState.user?.name || '').trim().split(/\s+/).filter(Boolean);
@@ -349,13 +405,10 @@ const initials = computed(() => {
   return (parts[0][0] + (parts[1]?.[0] || '')).toUpperCase();
 });
 
-const ROLE_LABELS = {
-  farmer: 'Farmer',
-  expert: 'Agricultural Expert',
-  organization_owner: 'Organization Owner',
-  admin: 'Administrator',
-};
-const roleLabel = computed(() => ROLE_LABELS[authState.user?.role] || authState.user?.role || '');
+const roleLabel = computed(() => {
+  const role = authState.user?.role;
+  return role ? t(`roles.${role}`) : '';
+});
 
 const canMessage = computed(
   () =>

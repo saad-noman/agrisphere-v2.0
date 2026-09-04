@@ -51,7 +51,7 @@
           <img v-if="org.photo" :src="serverUrl + org.photo" alt="" class="org-thumb" />
           <span>
             <span class="plain-link">{{ org.name }}</span>
-            <span v-if="org.district"> — {{ org.district }}</span>
+            <span v-if="formatShortAddress(org.address)"> — {{ formatShortAddress(org.address) }}</span>
             <StarRating :value="org.ratingAverage || 0" :count="org.ratingCount || 0" />
           </span>
         </li>
@@ -69,6 +69,7 @@ import { searchOrganizations } from '../services/organizationService';
 import OrganizationSidebar from '../components/OrganizationSidebar.vue';
 import { useClickOutside } from '../composables/useClickOutside';
 import StarRating from '../components/StarRating.vue';
+import { formatAddress, formatShortAddress } from '../utils/address';
 
 const router = useRouter();
 const organizations = ref([]);

@@ -175,7 +175,7 @@
             <div>
               <div class="fw-bold">{{ e.fullName }}</div>
               <div class="text-muted small">
-                {{ [e.specialization, e.district].filter(Boolean).join(' • ') }}
+                {{ [e.specialization, formatShortAddress(e.address)].filter(Boolean).join(' • ') }}
               </div>
             </div>
           </button>
@@ -199,6 +199,7 @@ import {
   deleteMessage,
 } from '../services/messageService';
 import { confirmDelete } from '../stores/confirm';
+import { formatAddress, formatShortAddress } from '../utils/address';
 
 const route = useRoute();
 const router = useRouter();
@@ -249,7 +250,7 @@ const filteredExperts = computed(() => {
     (e) =>
       e.fullName?.toLowerCase().includes(q) ||
       e.specialization?.toLowerCase().includes(q) ||
-      e.district?.toLowerCase().includes(q)
+      formatShortAddress(e.address).toLowerCase().includes(q)
   );
 });
 

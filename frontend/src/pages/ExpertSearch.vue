@@ -50,8 +50,8 @@
           <div class="fw-bold">{{ expert.fullName }}</div>
           <StarRating :value="expert.ratingAverage || 0" :count="expert.ratingCount || 0" />
           <div v-if="expert.specialization">{{ expert.specialization }}</div>
-          <div v-if="expert.district || expert.upazila" class="text-muted small">
-            {{ expert.upazila }} {{ expert.district }}
+          <div v-if="formatShortAddress(expert.address)" class="text-muted small">
+            {{ formatShortAddress(expert.address) }}
           </div>
           <div v-if="expert.experience" class="text-muted small">{{ expert.experience }} years experience</div>
           <div v-if="expert.organization" class="small">
@@ -81,6 +81,7 @@ import { serverUrl } from '../services/api';
 import { searchExperts } from '../services/expertService';
 import { useClickOutside } from '../composables/useClickOutside';
 import StarRating from '../components/StarRating.vue';
+import { formatAddress, formatShortAddress } from '../utils/address';
 
 const router = useRouter();
 const experts = ref([]);

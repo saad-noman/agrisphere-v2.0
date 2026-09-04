@@ -16,14 +16,14 @@
         v-if="uiState.drawerOpen"
         class="app-drawer"
         role="dialog"
-        aria-label="Account menu"
+        :aria-label="t('a11y.accountMenu')"
       >
         <!-- Identity header -->
         <header class="app-drawer-header">
           <button
             type="button"
             class="app-drawer-close"
-            aria-label="Close menu"
+            :aria-label="t('a11y.closeMenu')"
             @click="closeDrawer"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -34,7 +34,7 @@
 
           <!-- Avatar is only rendered for a signed-in user -->
           <div v-if="authState.user" class="drawer-avatar">
-            <img v-if="photoUrl" :src="photoUrl" alt="Profile photo" />
+            <img v-if="photoUrl" :src="photoUrl" alt="" />
             <!-- Clean person silhouette when the user has no photo -->
             <svg v-else viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0 2c-4.42 0-8 2.69-8 6v1a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-1c0-3.31-3.58-6-8-6Z" />
@@ -49,11 +49,11 @@
             </div>
           </template>
           <template v-else>
-            <div class="drawer-user-name">Welcome to AgriSphere</div>
-            <div class="drawer-user-role">Grow smarter, together</div>
+            <div class="drawer-user-name">{{ t('home.welcome') }}</div>
+            <div class="drawer-user-role">{{ t('brand.tagline') }}</div>
             <div class="drawer-guest-actions">
-              <router-link to="/login" class="btn-pill-outline btn-pill-sm" @click="closeDrawer">Login</router-link>
-              <router-link to="/register" class="btn-pill btn-pill-sm" @click="closeDrawer">Register</router-link>
+              <router-link to="/login" class="btn-pill-outline btn-pill-sm" @click="closeDrawer">{{ t('nav.login') }}</router-link>
+              <router-link to="/register" class="btn-pill btn-pill-sm" @click="closeDrawer">{{ t('nav.register') }}</router-link>
             </div>
           </template>
         </header>
@@ -61,14 +61,22 @@
         <div class="app-drawer-body">
           <!-- Account destinations (not present in the navbar's nav groups) -->
           <nav v-if="authState.user" class="drawer-section">
-            <p class="drawer-section-title">Account</p>
+            <p class="drawer-section-title">{{ t('nav.account') }}</p>
+            <router-link to="/orders" class="drawer-link" @click="closeDrawer">
+              <span class="drawer-link-icon" v-html="icon('message')"></span>
+              <span>{{ t('market2.myOrders') }}</span>
+            </router-link>
+            <router-link to="/wallet" class="drawer-link" @click="closeDrawer">
+              <span class="drawer-link-icon" v-html="icon('settings')"></span>
+              <span>{{ t('wallet.title') }}</span>
+            </router-link>
             <router-link to="/profile-dashboard" class="drawer-link" @click="closeDrawer">
               <span class="drawer-link-icon" v-html="icon('user')"></span>
-              <span>My Profile</span>
+              <span>{{ t('nav.myProfile') }}</span>
             </router-link>
             <router-link to="/profile" class="drawer-link" @click="closeDrawer">
               <span class="drawer-link-icon" v-html="icon('settings')"></span>
-              <span>Edit Profile</span>
+              <span>{{ t('nav.editProfile') }}</span>
             </router-link>
             <router-link
               v-if="canMessage"
@@ -77,15 +85,36 @@
               @click="closeDrawer"
             >
               <span class="drawer-link-icon" v-html="icon('message')"></span>
-              <span>Messages</span>
+              <span>{{ t('a11y.messages') }}</span>
               <span v-if="unreadMessages" class="drawer-link-badge">{{ unreadMessages }}</span>
             </router-link>
           </nav>
 
+          <!-- Language. Sits with Appearance because both are personal
+               display preferences, and a farmer looking for one expects the
+               other in the same place. -->
+          <div class="drawer-section">
+            <p class="drawer-section-title">{{ t('language.label') }}</p>
+            <div class="theme-segmented" role="group" :aria-label="t('language.label')">
+              <button
+                v-for="option in SUPPORTED_LOCALES"
+                :key="option.code"
+                type="button"
+                class="theme-seg-btn"
+                :class="{ 'theme-seg-active': currentLocale === option.code }"
+                :aria-pressed="currentLocale === option.code"
+                @click="setLocale(option.code)"
+              >
+                <span>{{ option.nativeLabel }}</span>
+              </button>
+            </div>
+            <p class="drawer-hint">{{ t('language.hint') }}</p>
+          </div>
+
           <!-- Appearance: full control over the theme preference -->
           <div class="drawer-section">
-            <p class="drawer-section-title">Appearance</p>
-            <div class="theme-segmented" role="group" aria-label="Theme preference">
+            <p class="drawer-section-title">{{ t('theme.label') }}</p>
+            <div class="theme-segmented" role="group" :aria-label="t('theme.label')">
               <button
                 v-for="opt in themeOptions"
                 :key="opt.value"
@@ -96,13 +125,13 @@
                 @click="setTheme(opt.value)"
               >
                 <span class="theme-seg-icon" v-html="icon(opt.icon)"></span>
-                <span>{{ opt.label }}</span>
+                <span>{{ t(`theme.${opt.value}`) }}</span>
               </button>
             </div>
             <p class="drawer-hint">
               {{ themeState.preference === 'system'
-                ? `Following your device (${resolvedTheme})`
-                : `Always ${themeState.preference}` }}
+                ? t('theme.followingDevice', { theme: t(`theme.${resolvedTheme}`) })
+                : t('theme.always', { theme: t(`theme.${themeState.preference}`) }) }}
             </p>
           </div>
 
@@ -111,7 +140,7 @@
         <footer v-if="authState.user" class="app-drawer-footer">
           <button type="button" class="btn-pill-danger drawer-logout" @click="handleLogout">
             <span class="drawer-link-icon" v-html="icon('logout')"></span>
-            Logout
+            {{ t('nav.logout') }}
           </button>
         </footer>
       </aside>
@@ -128,6 +157,7 @@ import { themeState, setTheme, resolvedTheme } from '../stores/theme';
 import { getProfile } from '../services/profileService';
 import { getUnreadCount } from '../services/messageService';
 import { serverUrl } from '../services/api';
+import { t, setLocale, currentLocale, SUPPORTED_LOCALES } from '../i18n';
 
 const router = useRouter();
 const profileImage = ref(authState.user?.profileImage || '');
@@ -137,15 +167,10 @@ const photoUrl = computed(() =>
   profileImage.value ? serverUrl + profileImage.value : ''
 );
 
-const ROLE_LABELS = {
-  farmer: 'Farmer',
-  expert: 'Agricultural Expert',
-  organization_owner: 'Organization Owner',
-  admin: 'Administrator',
-};
-const roleLabel = computed(
-  () => ROLE_LABELS[authState.user?.role] || authState.user?.role || ''
-);
+const roleLabel = computed(() => {
+  const role = authState.user?.role;
+  return role ? t(`roles.${role}`) : '';
+});
 
 const canMessage = computed(
   () =>
@@ -153,10 +178,11 @@ const canMessage = computed(
     (authState.user.role === 'farmer' || authState.user.role === 'expert')
 );
 
+// Labels come from theme.* keys at render time so they follow the language.
 const themeOptions = [
-  { value: 'light', label: 'Light', icon: 'sun' },
-  { value: 'dark', label: 'Dark', icon: 'moon' },
-  { value: 'system', label: 'System', icon: 'device' },
+  { value: 'light', icon: 'sun' },
+  { value: 'dark', icon: 'moon' },
+  { value: 'system', icon: 'device' },
 ];
 
 // --- Inline icon set -----------------------------------------------------

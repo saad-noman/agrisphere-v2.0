@@ -35,9 +35,9 @@
           <span class="detail-info-label">Address</span>
           <span class="detail-info-value">{{ organization.address }}</span>
         </div>
-        <div v-if="organization.district || organization.upazila" class="detail-info-item">
+        <div v-if="formatAddress(organization.address)" class="detail-info-item">
           <span class="detail-info-label">Location</span>
-          <span class="detail-info-value">{{ organization.upazila }} {{ organization.district }}</span>
+          <span class="detail-info-value">{{ formatAddress(organization.address) }}</span>
         </div>
         <div v-if="organization.contactNumber" class="detail-info-item">
           <span class="detail-info-label">Contact</span>
@@ -75,6 +75,7 @@ import { serverUrl } from '../services/api';
 import { getOrganization } from '../services/organizationService';
 import StarRating from '../components/StarRating.vue';
 import RatingSection from '../components/RatingSection.vue';
+import { formatAddress, formatShortAddress } from '../utils/address';
 
 const route = useRoute();
 const organization = ref(null);
