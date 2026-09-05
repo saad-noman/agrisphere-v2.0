@@ -53,6 +53,10 @@ data/
 *.sqlite3
 *.sqlite-journal
 
+# Keep AgriSphere backend data files
+!backend/data/
+!backend/data/*.js
+
 # ============================================================
 # Test coverage / test artifacts
 # ============================================================
